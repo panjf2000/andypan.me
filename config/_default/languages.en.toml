@@ -4,12 +4,12 @@ languageDirection = "ltr"
 weight = 1
 
 title = "Andy Pan"
+copyright = "© Attribution-NonCommercial-ShareAlike 4.0 International"
 
 [params]
   dateFormat = "2 January 2006"
-
-  # mainSections = ["section1", "section2"]
-  # description = "My awesome website"
+  description = """Andy Pan's personal website about programming, blogging,
+                 photography, travelling, open source, and tech enthusiasm."""
 
 [params.author]
   name = "Andy Pan"
