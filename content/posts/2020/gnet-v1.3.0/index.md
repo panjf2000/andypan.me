@@ -3,6 +3,7 @@ date = '2020-09-13'
 title = 'Released gnet v1.3.0'
 summary = 'Released the official stable version of v1.3.0'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true

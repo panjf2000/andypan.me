@@ -3,6 +3,7 @@ date = '2018-07-07'
 title = 'About'
 summary = 'Get to know me better if anyone cares.'
 layout = 'page'
+tags = ['Personal', 'Blog', 'Introduction', 'GitHub', 'Open source']
 [params]
   author = 'Andy Pan'
 showAuthor = true

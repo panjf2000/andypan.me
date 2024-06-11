@@ -3,6 +3,7 @@ date = '2023-11-11'
 title = 'Gnet tops the TechEmpower benchmark leaderboard'
 summary = 'Gnet tops the TechEmpower benchmark leaderboard, becoming the world No. 1'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'News']
 [params]
   author = 'Andy Pan'
 showAuthor = true

@@ -3,6 +3,7 @@ date = "2019-11-12"
 title = 'Gnet -- Supports Windows platform'
 summary = 'Support Windows platform by Go standard net package'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true

@@ -3,6 +3,7 @@ date = '2018-07-07'
 title = 'Donation'
 summary = 'Thank you for your generosity.'
 layout = 'page'
+tags = ['Donation', 'Personal', 'WeChat', 'AliPay', 'PayPal']
 [params]
   author = 'Andy Pan'
 showAuthor = true

@@ -3,6 +3,7 @@ date = '2020-03-31'
 title = 'Gnet -- Support new load-balancing algorithm'
 summary = 'Support new load-balancing algorithm of least-connections'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true

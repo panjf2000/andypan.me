@@ -3,6 +3,7 @@ date = '2020-07-02'
 title = 'Gnet -- New approach to create server sockets'
 summary = 'Leverage system calls instead of `net` package to create sockets'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true

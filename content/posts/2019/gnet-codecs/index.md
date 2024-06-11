@@ -3,6 +3,7 @@ date = '2019-11-07'
 title = 'Gnet -- Support multiple codecs'
 summary = 'Support multiple codecs to encode/decode TCP stream'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true

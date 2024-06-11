@@ -3,6 +3,7 @@ date = 2018-07-07
 title = 'My blogs'
 summary = 'Welcome to visit my blog.'
 layout = 'page'
+tags = ['Blog', 'Personal']
 [params]
   author = 'Andy Pan'
 showAuthor = true

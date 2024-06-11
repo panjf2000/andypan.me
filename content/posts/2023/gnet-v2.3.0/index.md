@@ -3,6 +3,7 @@ date = '2023-05-19'
 title = 'Release candidate for gnet v2.3.0'
 summary = 'The first release candidate for gnet v2.3.0'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes', 'Announcement']
 [params]
   author = 'Andy Pan'
 showAuthor = true

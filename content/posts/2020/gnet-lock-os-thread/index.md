@@ -3,6 +3,7 @@ date = '2020-09-13'
 title = 'Gnet -- Support locking OS thread'
 summary = 'Support locking each I/O event-loop goroutine to an OS thread'
 layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true
