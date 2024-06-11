@@ -44,4 +44,4 @@ I enjoy traveling around and [***taking pictures of the landscapes***](https://g
 - [Send me an email](mailto:i@andypan.me)
 - [Join me on Discord](https://discord.gg/UyKD7NZcfH)
 - [Issue me on Github](https://github.com/panjf2000)
-- [Follow me on Twitter](https://twitter.com/_andy_pan)
+- [Follow me on Twitter](https://twitter.com/panjf2000)
