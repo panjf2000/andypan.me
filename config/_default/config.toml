@@ -11,3 +11,7 @@ summaryLength = 0
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
+
+# This is lame, try to find a better way for it.
+[markup.goldmark.renderer]
+unsafe = true
