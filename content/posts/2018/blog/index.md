@@ -12,4 +12,4 @@ showReadingTime = false
 showWordCount = false
 +++
 
-I occasionally post something on [***my blog***](https://blog.andypan.me/), technological articles, reading notes, informal essays, etc., mostly written in Chinese, my native language.
+I occasionally post something on [***my blog***](https://blog.andypan.me/), technological articles, reading notes, informal essays, etc., mostly written in Chinese, my first language.
