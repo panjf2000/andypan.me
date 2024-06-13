@@ -16,7 +16,6 @@ showWordCount = true
 
 Hi there, I'm Andy Pan in English while `潘建锋` is how my Chinese name spells.
 
-- 🇨🇳 Chinese
 - 👔 Pronouns: "He" | "His"
 - 🧑🏻‍💻 Programmer
 - 🌏 Open-source software developer
