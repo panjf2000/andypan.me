@@ -49,6 +49,105 @@ Library `ants` implements a goroutine pool with fixed capacity, managing and rec
 
 ## 🖥 Use cases
 
+### business companies
+
+The following companies/organizations use `ants` in production.
+
+<table>
+  <tbody>
+    <tr></tr>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://www.tencent.com">
+          <img src="https://res.strikefreedom.top/static_res/logos/tencent_logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.bytedance.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/ByteDance_Logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://tieba.baidu.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/baidu-tieba-logo.png" width="300" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://weibo.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/weibo-logo.png" width="300" />
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://www.tencentmusic.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/tencent-music-logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.futuhk.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/futu-logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.shopify.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/shopify-logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.wechat.com/en/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/wechat-logo.png" width="250" />
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://www.baidu.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/baidu-mobile.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.360.com" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/360-logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.huaweicloud.com/intl/en-us/" target="_blank">
+          <img src="https://res-static.hc-cdn.cn/cloudbu-site/china/zh-cn/%E7%BB%84%E4%BB%B6%E9%AA%8C%E8%AF%81/pep-common-header/logo-en.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.matrixorigin.io" target="_blank">
+          <img src="https://www.matrixorigin.io/_next/static/media/logo-light-en.42553c69.svg" width="250" />
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://adguard-dns.io" target="_blank">
+          <img src="https://cdn.adtidy.org/website/images/AdGuardDNS_black.svg" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://bk.tencent.com" target="_blank">
+          <img src="https://static.apiseven.com/2022/11/14/6371adab14119.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.alibabacloud.com" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/aliyun-intl.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.zuoyebang.com" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/zuoyebang-logo.jpeg" width="300" />
+        </a>
+      </td>
+    </tr>
+    <tr></tr>
+  </tbody>
+</table>
+
 ### open-source software
 
 The open-source projects below do concurrent programming with the help of `ants`.
@@ -73,9 +172,3 @@ The open-source projects below do concurrent programming with the help of `ants`
 - [vanus](https://github.com/vanus-labs/vanus): Vanus is a Serverless, event streaming system with processing capabilities. It easily connects SaaS, Cloud Services, and Databases to help users build next-gen Event-driven Applications.
 - [trpc-go](https://github.com/trpc-group/trpc-go): A pluggable, high-performance RPC framework written in Golang.
 - [motan-go](https://github.com/weibocom/motan-go): a remote procedure call (RPC) framework for the rapid development of high-performance distributed services.
-
-### business companies
-
-The following companies/organizations use `ants` in production.
-
-<a href="https://www.tencent.com"><img src="https://res.strikefreedom.top/static_res/logos/tencent_logo.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.bytedance.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/ByteDance_Logo.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://tieba.baidu.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/baidu-tieba-logo.png" width="300" align="left"/></a>&nbsp;&nbsp;<a href="https://weibo.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/weibo-logo.png" width="300" align="left"/></a>&nbsp;&nbsp;<a href="https://www.tencentmusic.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/tencent-music-logo.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.futuhk.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/futu-logo.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.shopify.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/shopify-logo.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.wechat.com/en/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/wechat-logo.png" width="250" align="left"/></a><a href="https://www.baidu.com/" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/baidu-mobile.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.360.com" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/360-logo.png" width="250" align="left"/></a><a href="https://www.huaweicloud.com/intl/en-us/" target="_blank"><img src="https://res-static.hc-cdn.cn/cloudbu-site/china/zh-cn/%E7%BB%84%E4%BB%B6%E9%AA%8C%E8%AF%81/pep-common-header/logo-en.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.matrixorigin.io" target="_blank"><img src="https://www.matrixorigin.io/_next/static/media/logo-light-en.42553c69.svg" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://adguard-dns.io" target="_blank"><img src="https://cdn.adtidy.org/website/images/AdGuardDNS_black.svg" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://bk.tencent.com" target="_blank"><img src="https://static.apiseven.com/2022/11/14/6371adab14119.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.alibabacloud.com" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/aliyun-intl.png" width="250" align="left"/></a>&nbsp;&nbsp;<a href="https://www.zuoyebang.com" target="_blank"><img src="https://res.strikefreedom.top/static_res/logos/zuoyebang-logo.jpeg" width="300" align="left"/></a>
