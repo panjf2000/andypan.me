@@ -45,7 +45,7 @@ Now that we've created the droplet, you may want to initialize your server with 
 
 ### Using Docker
 
-If you make it here, you should be able to use docker on the droplet to pull any images hosted on [Docker Hub](https://hub.docker.com/) and deploy them on your droplet. We're going to deploy the `gallery` service using docker compose with this `docker-compose.yml`:
+If you make it here, you should be able to use docker on the droplet to pull any images hosted on [Docker Hub](https://hub.docker.com/) and deploy them on your droplet. The Docker Engine normally doesn't come with Docker Compose, so you have to [install it manually](https://docs.docker.com/compose/install/). We're going to deploy the `gallery` service using docker compose with this `docker-compose.yml`:
 
 ```yaml
 version: "3.8"
