@@ -100,9 +100,9 @@ networks:
   gallery_network:
 ```
 
-You need to deploy the `gallery` service in conjunction with a static content server, that way the `gallery` service can redirect the requests to the backend that serves static content. There are many open-source reverse proxies that can be used as a static content server, such as [nginx](https://nginx.org/) or [caddy](https://caddyserver.com/). For what it is worth, this [blog post](https://blog.tjll.net/reverse-proxy-hot-dog-eating-contest-caddy-vs-nginx/) may help you decide.
+You need to deploy the `gallery` service in conjunction with a static content server, that way the `gallery` service can redirect the requests to the backend that serves static content. There are many open-source reverse proxies that can be used as static content servers, such as [nginx](https://nginx.org/) or [caddy](https://caddyserver.com/). For what it is worth, this [blog post](https://blog.tjll.net/reverse-proxy-hot-dog-eating-contest-caddy-vs-nginx/) may help you decide.
 
-In this tutorial, I'll go with nginx but other reverse proxies should also be as eminent static content servers as nginx. Therefore, just choose whichever reverse proxy you like. Here is a sample of nginx configuration as a static content server:
+In this tutorial, I'll go with nginx but other reverse proxies should also be as eminent static content servers as nginx. Therefore, just choose whichever reverse proxy you like. Here is a sample configuration of nginx as a static content server:
 
 ```nginx
 server {
