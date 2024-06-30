@@ -1,5 +1,5 @@
 +++
-date = '2020-02-02'
+date = 2020-02-02
 title = 'My open-source work'
 summary = 'Some renowned open-source projects I have contributed code to.'
 layout = 'page'

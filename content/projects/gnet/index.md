@@ -1,5 +1,5 @@
 +++
-date = '2019-09-07'
+date = 2019-09-07
 title = 'Networking framework -- gnet'
 summary = '🚀 gnet is a high-performance, lightweight, non-blocking, event-driven networking framework written in pure Go.'
 layout = 'page'

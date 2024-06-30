@@ -1,5 +1,5 @@
 +++
-date = '2018-05-19'
+date = 2018-05-19
 title = 'Goroutine pool -- ants'
 summary = '🐜🐜🐜 ants is a high-performance and low-cost goroutine pool in Go.'
 layout = 'page'
