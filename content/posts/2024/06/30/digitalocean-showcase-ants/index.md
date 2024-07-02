@@ -15,6 +15,10 @@ showWordCount = true
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=5d8774f42124&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
+## External Link
+
+Visit [this](https://strikefreedom.top/archives/howto-deploy-services-with-ants-on-digitalocean).
+
 ## Introduction to ants
 
 Library `ants` implements a goroutine pool with fixed capacity, managing and recycling a massive number of goroutines, allowing developers to limit the number of goroutines in your concurrent programs. Services that need to conserve the system resources while handling a mass of requests/tasks can really use some help from `ants`.
@@ -35,7 +39,7 @@ I've created a project `gallery` that responds with random images via HTTP proto
 
 First of all, let's navigate to the `Droplets` menu on your DigitalOcean console and click on the `Create Droplet` button in the upper right corner.
 
-Secondly, either you switch to the `Marketplace` tab and pick the `Docker on Ubuntu 22.04` when you choose an image to be installed on your droplet or you choose any image you prefer and install the docker engine later by following these [docs](https://docs.docker.com/engine/install/). 
+Secondly, either you switch to the `Marketplace` tab and pick the `Docker on Ubuntu 22.04` when you choose an image to be installed on your droplet or you choose any image you prefer and install the docker engine later by following these [docs](https://docs.docker.com/engine/install/).
 
 ![](./img/do-docker.png)
 
@@ -95,7 +99,7 @@ services:
       - LOADING_KEY=thumb
       # Specify the placeholder image for lazy loading.
       - LOADING_PAGE=wallpaper-loading.gif
-      
+
 networks:
   gallery_network:
 ```
