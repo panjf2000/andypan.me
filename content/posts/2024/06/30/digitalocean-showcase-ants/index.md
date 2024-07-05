@@ -150,10 +150,10 @@ Before we starting to deploy the services, you may want to hand-pick some pictur
 After all preliminary procedures are done, we now can deploy the `gallery` service using docker compose: go to wherever the `docker-compose.yml` is located and run the following command:
 
 ```bash
-docker compose up -d gallery
+docker compose up -d
 ```
 
-If no errors are reported from running the above command, we then should have this service up and running.
+If no errors are reported from running the above command, we then should have had this service up and running.
 
 At this point, an API service should be ready to accept requests. You can configure your DNS to translate your custom domain to the droplet IP along with proxying the requests from nginx to the `gallery` service. The simplest way to manage your DNS records with custom domains for your droplets is to do it on [DigitalOcean](https://docs.digitalocean.com/products/networking/dns/). Or you can just do it using your own DNS provider from which you bought your domains, like [CloudFlare](https://www.cloudflare.com/application-services/products/dns/) or [AWS](https://aws.amazon.com/route53/).
 
