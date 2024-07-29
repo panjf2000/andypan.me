@@ -99,15 +99,15 @@ services:
       - LOADING_KEY=thumb
       # Specify the placeholder image for lazy loading.
       - LOADING_PAGE=wallpaper-loading.gif
-      # Make this service serve content itself instead of
-      # redirecting requests to the backend server like nginx.
-      - SERVE_CONTENT=true
+      # Determine whether the service should serve content itself
+      # or redirect requests to the backend server like nginx.
+      - SERVE_CONTENT=false
 
 networks:
   gallery_network:
 ```
 
-Before v1.1.0 (such as v1.0.0), you have to deploy the `gallery` service in conjunction with a static content server, that way the `gallery` service can redirect the requests to the backend that serves static content. There are many open-source reverse proxies that can be used as static content servers, such as [nginx](https://nginx.org/) or [caddy](https://caddyserver.com/). For what it is worth, this [blog post](https://blog.tjll.net/reverse-proxy-hot-dog-eating-contest-caddy-vs-nginx/) may help you decide.
+Before v1.1.0 (such as v1.0.0), you must deploy the `gallery` service in conjunction with a static content server, that way the `gallery` service can redirect the requests to the backend that serves static content. There are many open-source reverse proxies that can be used as static content servers, such as [nginx](https://nginx.org/) or [caddy](https://caddyserver.com/). For what it is worth, this [blog post](https://blog.tjll.net/reverse-proxy-hot-dog-eating-contest-caddy-vs-nginx/) may help you decide.
 
 In this tutorial, I'll go with nginx but other reverse proxies should also be as eminent static content servers as nginx. Therefore, just choose whichever reverse proxy you like. Here is a sample configuration of nginx as a static content server:
 
@@ -148,7 +148,7 @@ server {
 }
 ```
 
-As of v1.1.0, `gallery` is able to serve content itself by replying to the request with images directly. You can enable this feature by adding `- SERVE_CONTENT=true` environment variable to the `dcoker-compse.yml`.
+As of v1.1.0, `gallery` is able to serve content itself by replying to the request with a random image directly. This feature is enabled by default, but you can turn it off by adding the environment variable of `- SERVE_CONTENT=false` to the `dcoker-compse.yml`.
 
 Before we starting to deploy the services, you may want to hand-pick some pictures and stuff them in the location where nginx will serve static content. This directory containing those pictures is monitored by `gallery`, so any updates to the directory will be automatically reloaded inside `gallery`, which means that you can add, delete or modify pictures at any time without worrying about data synchronisation.
 
