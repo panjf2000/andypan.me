@@ -49,34 +49,33 @@ https://github.com/panjf2000/gnet
 
 ## 🎡 Use cases
 
-The following companies/organizations use `gnet` as the underlying network service in production.
+The following corporations/organizations use `gnet` as the underlying network service in production.
 
 <table>
   <tbody>
-    <tr></tr>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://www.tencent.com">
-          <img src="https://res.strikefreedom.top/static_res/logos/tencent_logo.png" width="250" />
+        <a href="https://www.tencent.com/">
+          <img src="https://res.strikefreedom.top/static_res/logos/tencent_logo.png" width="200" />
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.iqiyi.com" target="_blank">
+        <a href="https://www.iqiyi.com/" target="_blank">
           <img src="https://res.strikefreedom.top/static_res/logos/iqiyi-logo.png" width="200" />
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.mi.com" target="_blank">
-          <img src="https://res.strikefreedom.top/static_res/logos/mi-logo.png" width="150" />
+        <a href="https://www.mi.com/global/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/mi-logo.png" width="200" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.360.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/360-logo.png" width="200" />
         </a>
       </td>
     </tr>
     <tr>
-      <td align="center" valign="middle">
-        <a href="https://www.360.com" target="_blank">
-          <img src="https://res.strikefreedom.top/static_res/logos/360-logo.png" width="200" />
-        </a>
-      </td>
       <td align="center" valign="middle">
         <a href="https://tieba.baidu.com/" target="_blank">
           <img src="https://res.strikefreedom.top/static_res/logos/baidu-tieba-logo.png" width="200" />
@@ -87,7 +86,17 @@ The following companies/organizations use `gnet` as the underlying network servi
           <img src="https://res.strikefreedom.top/static_res/logos/tencent-games-logo.jpeg" width="200" />
         </a>
       </td>
+      <td align="center" valign="middle">
+        <a href="https://www.jd.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/jd-logo.png" width="200" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://www.zuoyebang.com" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/zuoyebang-logo.jpeg" width="200" />
+        </a>
+      </td>
     </tr>
-    <tr></tr>
   </tbody>
 </table>
+

@@ -49,16 +49,15 @@ Library `ants` implements a goroutine pool with fixed capacity, managing and rec
 
 ## 🖥 Use cases
 
-### business companies
+### business corporations
 
-The following companies/organizations use `ants` in production.
+Trusted by the following corporations/organizations.
 
 <table>
   <tbody>
-    <tr></tr>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://www.tencent.com">
+        <a href="https://www.tencent.com/">
           <img src="https://res.strikefreedom.top/static_res/logos/tencent_logo.png" width="250" />
         </a>
       </td>
@@ -103,11 +102,11 @@ The following companies/organizations use `ants` in production.
     <tr>
       <td align="center" valign="middle">
         <a href="https://www.baidu.com/" target="_blank">
-          <img src="https://res.strikefreedom.top/static_res/logos/baidu-mobile.png" width="250" />
+          <img src="https://res.strikefreedom.top/static_res/logos/baidu-mobile-logo.png" width="250" />
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.360.com" target="_blank">
+        <a href="https://www.360.com/" target="_blank">
           <img src="https://res.strikefreedom.top/static_res/logos/360-logo.png" width="250" />
         </a>
       </td>
@@ -117,41 +116,51 @@ The following companies/organizations use `ants` in production.
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.matrixorigin.io" target="_blank">
+        <a href="https://www.matrixorigin.io/" target="_blank">
           <img src="https://www.matrixorigin.io/_next/static/media/logo-light-en.42553c69.svg" width="250" />
         </a>
       </td>
     </tr>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://adguard-dns.io" target="_blank">
+        <a href="https://adguard-dns.io/" target="_blank">
           <img src="https://cdn.adtidy.org/website/images/AdGuardDNS_black.svg" width="250" />
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://bk.tencent.com" target="_blank">
+        <a href="https://bk.tencent.com/" target="_blank">
           <img src="https://static.apiseven.com/2022/11/14/6371adab14119.png" width="250" />
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.alibabacloud.com" target="_blank">
-          <img src="https://res.strikefreedom.top/static_res/logos/aliyun-intl.png" width="250" />
+        <a href="https://www.alibabacloud.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/aliyun-intl-logo.png" width="250" />
         </a>
       </td>
       <td align="center" valign="middle">
-        <a href="https://www.zuoyebang.com" target="_blank">
+        <a href="https://www.zuoyebang.com/" target="_blank">
           <img src="https://res.strikefreedom.top/static_res/logos/zuoyebang-logo.jpeg" width="300" />
         </a>
       </td>
     </tr>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://www.antgroup.com/en" target="_blank">
-          <img src="https://gw.alipayobjects.com/mdn/rms_27e257/afts/img/A*PLZaSZnCPAwAAAAAAAAAAAAAARQnAQ" width="250" />
+        <a href="https://www.antgroup.com/en/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/ant-group-logo.png" width="250" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://zilliz.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/zilliz-logo.png" width="250" />
+        </a>
+      </td>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://amap.com/" target="_blank">
+          <img src="https://res.strikefreedom.top/static_res/logos/amap-logo.png" width="250" />
         </a>
       </td>
     </tr>
-    <tr></tr>
   </tbody>
 </table>
 
