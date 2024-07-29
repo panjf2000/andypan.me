@@ -86,7 +86,7 @@ services:
       - PORT=7000
       - DIR=/your/images/location/
       # The actual backend that serves static content.
-      - URL=https://api.your-domain.com/images/
+      - URL=https://api.your-domain.com/images/random
       # Set the maximum requests per second per remote IP.
       - RATE_LIMIT_MAX=10
       # Set the expiration time in minutes for the token bucket of
@@ -148,7 +148,7 @@ server {
 }
 ```
 
-As of v1.1.0, `gallery` is able to serve content itself by replying to the request with a random image directly. This feature is enabled by default, but you can turn it off by adding the environment variable of `- SERVE_CONTENT=false` to the `dcoker-compse.yml`.
+In v1.1.0, `gallery` is able to serve content itself by replying to the request with a random image directly. This feature is enabled by default, but you can turn it off by adding the environment variable of `- SERVE_CONTENT=false` to the `dcoker-compse.yml`. As of v1.2.0, `SERVE_CONTENT` is deprecated, and `gallery` starts to use query parameter `proxy_mode` to toggle between the mode A of serving content itself and the mode B of forwarding requests to the backend: `https://api.your-domain.com/images/random` —— mode A, `https://api.your-domain.com/images/random?proxy_mode` —— mode B.
 
 Before we starting to deploy the services, you may want to hand-pick some pictures and stuff them in the location where nginx will serve static content. This directory containing those pictures is monitored by `gallery`, so any updates to the directory will be automatically reloaded inside `gallery`, which means that you can add, delete or modify pictures at any time without worrying about data synchronisation.
 
