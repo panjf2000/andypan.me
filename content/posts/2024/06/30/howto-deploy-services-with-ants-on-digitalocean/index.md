@@ -10,7 +10,6 @@ showAuthor = true
 showDate = true
 showReadingTime = true
 showWordCount = true
-
 +++
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=5d8774f42124&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
@@ -150,7 +149,7 @@ server {
 
 In v1.1.0, `gallery` is able to serve content itself by replying to the request with a random image directly. This feature is enabled by default, but you can turn it off by adding the environment variable of `- SERVE_CONTENT=false` to the `dcoker-compse.yml`. As of v1.2.0, `SERVE_CONTENT` is deprecated, and `gallery` starts to use query parameter `proxy_mode` to toggle between the mode A of serving content itself and the mode B of forwarding requests to the backend: `https://api.your-domain.com/images/random` —— mode A, `https://api.your-domain.com/images/random?proxy_mode` —— mode B.
 
-Before we starting to deploy the services, you may want to hand-pick some pictures and stuff them in the location where nginx will serve static content. This directory containing those pictures is monitored by `gallery`, so any updates to the directory will be automatically reloaded inside `gallery`, which means that you can add, delete or modify pictures at any time without worrying about data synchronisation.
+Before you go ahead and start deploying the services, you may want to hand-pick some pictures and stuff them in the location where nginx will serve static content. This directory containing those pictures is monitored by `gallery`, so any updates to the directory will be automatically reloaded inside `gallery`, which means that you can add, delete or modify pictures at any time without worrying about data synchronisation.
 
 After all preliminary procedures are done, we now can deploy the `gallery` service using docker compose: go to wherever the `docker-compose.yml` is located and run the following command:
 

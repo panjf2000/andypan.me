@@ -14,7 +14,7 @@ summaryLength = 0
 
 # This is lame, try to find a better way for it.
 [markup.goldmark.renderer]
-unsafe = true
+  unsafe = true
 
 [services]
   [services.disqus]
