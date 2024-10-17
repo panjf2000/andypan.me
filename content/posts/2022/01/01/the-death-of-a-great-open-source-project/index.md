@@ -7,7 +7,7 @@ summary: gogo-protobuf 即将寿终正寝，这是一个故事。
 tags:
  - 个人
  - 随笔
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ## 陨落

@@ -12,7 +12,7 @@ tags:
  - 随笔
  - 旅行
  - 风景
-showWordCount: true
+isCJKLanguage: true
 ---
 
 # 前言

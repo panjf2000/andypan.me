@@ -7,7 +7,7 @@ summary: 这个书单是我从自己以前读过的或者目前正在读的所�
 tags:
  - 随笔
  - 读书
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/book-4e46a954.jpg)

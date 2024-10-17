@@ -7,7 +7,7 @@ summary: 介绍一些我个人认为比较优质的国产动漫。
 tags:
  - 随笔
  - 动漫
-showWordCount: true
+isCJKLanguage: true
 ---
 
 传说江湖中有一条漫画鄙视链：日漫粉鄙视美漫粉，美漫粉鄙视国漫粉，国漫粉鄙视其他所有粉...

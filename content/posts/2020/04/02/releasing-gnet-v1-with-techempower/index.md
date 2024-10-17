@@ -7,7 +7,7 @@ summary: gnet 发布正式的 v1 版本，附上权威的 TechEmpower 性能测�
 tags:
  - Golang
  - gnet
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/gnet@f2be45.png)

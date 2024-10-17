@@ -7,7 +7,7 @@ summary: 如题。
 tags:
  - Ubuntu
  - Docker
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/docker.png)

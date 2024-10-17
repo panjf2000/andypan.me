@@ -6,7 +6,7 @@ params:
 summary: 教你如何不花钱就使用 JetBrains 全系列的产品！
 tags:
  - 开源
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://raw.githubusercontent.com/panjf2000/illustrations/master/jetbrains/jetbrains.png)

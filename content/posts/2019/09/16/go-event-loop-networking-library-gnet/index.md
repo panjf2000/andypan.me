@@ -9,7 +9,7 @@ tags:
  - Epoll
  - Github
  - Golang
-showWordCount: true
+isCJKLanguage: true
 ---
 
 <p align="center">

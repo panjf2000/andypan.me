@@ -9,7 +9,7 @@ tags:
  - 异步
  - Python
  - Tornado
-showWordCount: true
+isCJKLanguage: true
 ---
 
 # Tornado和Celery介绍

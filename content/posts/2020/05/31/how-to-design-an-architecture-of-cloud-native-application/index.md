@@ -9,6 +9,7 @@ tags:
  - 云原生
  - 架构
  - 译文
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/1_xLYfw-LedpyFA-Fouzly6A.jpeg)

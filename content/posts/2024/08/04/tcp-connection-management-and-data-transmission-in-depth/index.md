@@ -9,7 +9,7 @@ tags:
  - tcp
  - 揭秘系列
  - 架构
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ## 导言

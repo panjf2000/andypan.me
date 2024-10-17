@@ -10,7 +10,7 @@ tags:
  - Zero-copy
  - 底层原理
  - Kernel
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/linux-zero-copy-stack.png)

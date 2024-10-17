@@ -7,7 +7,7 @@ summary: Lucene 入门介绍。
 tags:
  - Lucene
  - 搜索引擎
-showWordCount: true
+isCJKLanguage: true
 ---
 
 # Lucene 是什么？

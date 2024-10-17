@@ -9,7 +9,7 @@ tags:
  - Reactor模式
  - 网络
  - Redis
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/why-is-redis-fast.png)

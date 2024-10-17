@@ -7,7 +7,7 @@ summary: 大名潘建锋，道上的朋友给面子的，一般唤我一声潘�
 tags:
  - 个人
  - 随笔
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/939928.jpg)

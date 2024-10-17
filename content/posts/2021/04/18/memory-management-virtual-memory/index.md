@@ -9,7 +9,7 @@ tags:
  - 内存管理
  - 计算机硬件
  - 底层原理
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ## 导言

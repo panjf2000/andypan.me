@@ -12,7 +12,7 @@ tags:
  - Epoll
  - Linux-IO
  - kqueue
-showWordCount: true
+isCJKLanguage: true
 ---
 
 <p align="center">

@@ -9,7 +9,7 @@ tags:
  - Reactor模式
  - 网络
  - Golang
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/1byg1b4A5KSjtTzAlg9YjAw-842baca8.jpeg)

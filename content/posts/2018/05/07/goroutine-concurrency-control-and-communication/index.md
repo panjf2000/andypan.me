@@ -6,7 +6,7 @@ params:
 summary: 如题。
 tags:
  - Golang
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/044svco84sif9rjebqagmar0fp.png)

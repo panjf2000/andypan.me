@@ -7,7 +7,7 @@ summary: Go 语言官方的源码贡献手册中文版，适合那些想给 Go �
 tags:
  - 译文
  - Golang
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/Golang-1d6e9a2a.png)

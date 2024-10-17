@@ -9,7 +9,7 @@ tags:
  - 揭秘系列
  - Paxos
  - Raft
-showWordCount: true
+isCJKLanguage: true
 ---
 
 # 导言

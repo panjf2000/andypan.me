@@ -7,7 +7,7 @@ summary: 这是我在 2018 年 10 月份从腾讯离职时所写的一篇感悟�
 tags:
  - 个人
  - 随笔
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/1440x90074209c29dfcf726-6af3c4c1.jpg)

@@ -8,7 +8,7 @@ tags:
  - Mac
  - 多版本管理
  - Python
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/python-for-web-development-1024x576.jpg)

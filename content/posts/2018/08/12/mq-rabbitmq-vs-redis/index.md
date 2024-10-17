@@ -9,7 +9,7 @@ tags:
  - Redis
  - MQ
  - 消息队列
-showWordCount: true
+isCJKLanguage: true
 ---
 
 **消息队列选择：RabbitMQ & Redis**

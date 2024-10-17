@@ -7,7 +7,7 @@ summary: 精品国漫之 2D 篇，国产动画近几年的作品如雨后春笋�
 tags:
  - 动画
  - 随笔
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/v2-d87d3464742408fc547a489bed375f4e_1440w.jpg)

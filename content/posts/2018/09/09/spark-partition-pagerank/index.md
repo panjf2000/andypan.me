@@ -9,7 +9,7 @@ tags:
  - Pagerank
  - Scala
  - 译文
-showWordCount: true
+isCJKLanguage: true
 ---
 
 > **佩奇排名**（PageRank），又称**网页排名**、**谷歌左侧排名**，是一种由[搜索引擎](https://zh.wikipedia.org/wiki/%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E)根据[网页](https://zh.wikipedia.org/wiki/%E7%BD%91%E9%A1%B5)之间相互的[超链接](https://zh.wikipedia.org/wiki/%E8%B6%85%E9%93%BE%E6%8E%A5)计算的技术，而作为网页排名的要素之一，以[Google公司](https://zh.wikipedia.org/wiki/Google%E5%85%AC%E5%8F%B8)创办人[拉里·佩奇](https://zh.wikipedia.org/wiki/%E6%8B%89%E9%87%8C%C2%B7%E4%BD%A9%E5%A5%87)（Larry Page）之姓来命名。[Google](https://zh.wikipedia.org/wiki/Google)用它来体现网页的相关性和重要性，在[搜索引擎优化](https://zh.wikipedia.org/wiki/%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E4%BC%98%E5%8C%96)操作中是经常被用来评估网页优化的成效因素之一。

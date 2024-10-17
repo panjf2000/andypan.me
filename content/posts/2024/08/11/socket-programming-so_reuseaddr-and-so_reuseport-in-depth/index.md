@@ -10,7 +10,7 @@ tags:
  - socket
  - 网络
  - Kernel
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ## 导言

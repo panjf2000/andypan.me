@@ -9,7 +9,7 @@ tags:
  - 架构
  - 开源
  - 揭秘系列
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/G-P-M.png)

@@ -8,7 +8,7 @@ tags:
  - 文学
  - 历史
  - 读书
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ## 《烟花易冷》的前世今生

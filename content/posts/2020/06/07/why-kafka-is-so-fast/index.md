@@ -9,7 +9,7 @@ tags:
  - Kafka
  - NIO
  - 消息队列
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/apache-kafka.jpeg)

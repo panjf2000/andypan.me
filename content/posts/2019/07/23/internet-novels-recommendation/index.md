@@ -7,7 +7,7 @@ summary: 写了一个简单的爬虫，抓取了知乎问题：『有哪些可�
 tags:
  - 文学
  - 读书
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/wc-bee6ce1d.png)

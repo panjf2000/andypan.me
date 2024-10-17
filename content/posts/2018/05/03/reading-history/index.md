@@ -8,7 +8,7 @@ tags:
  - 文学
  - 历史
  - 读书
-showWordCount: true
+isCJKLanguage: true
 ---
 
 读史，动容莫过于见证一个一个悲剧的发生。

@@ -8,7 +8,7 @@ tags:
  - 译文
  - 计算机硬件
  - 底层原理
-showWordCount: true
+isCJKLanguage: true
 ---
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/1_J0vyCcdeeTk1OJMcmlOcTg.jpeg)
