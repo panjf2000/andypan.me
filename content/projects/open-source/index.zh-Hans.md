@@ -1,24 +1,24 @@
 +++
 date = 2020-02-02
-title = 'My open-source work'
-summary = 'My projects and some renowned open-source projects I have contributed code to.'
+title = '我的开源项目'
+summary = '我的个人项目和一些我贡献过代码的知名开源项目。'
 layout = 'page'
-tags = ['Go', 'Open source', 'Github']
+tags = ['Go', '开源', 'Github']
 [params]
-  author = 'Andy Pan'
+  author = '潘少'
 showAuthor = true
 showDate = true
 showReadingTime = false
 showWordCount = false
 +++
 
-# My GitHub Page
+# 我的 GitHub 主页
 
 [@panjf2000](https://github.com/panjf2000)  <img src="https://img.shields.io/github/followers/panjf2000?color=%23f2be45&logo=github&style=for-the-badge">
 
-# My open-source Repositories
+# 我的开源项目
 
-## As the creator
+## 作为作者
 
 ### [ants](https://github.com/panjf2000/ants)   <kbd title="主要编程语言">  Go  </kbd>    <span style="font-size: 15px;">        <a title="Watchers" target="_blank" href="https://github.com/panjf2000/ants/watchers">  <img src="https://img.shields.io/github/watchers/panjf2000/ants?color=%2344cef6&logo=probot&style=for-the-badge">    </a>        <a title="Stars" target="_blank" href="https://github.com/panjf2000/ants/stargazers">  <img src="https://img.shields.io/github/stars/panjf2000/ants?color=%232edfa3&logo=trustpilot&style=for-the-badge">    </a>        <a title="Forks" target="_blank" href="https://github.com/panjf2000/ants/network/members">  <img src="https://img.shields.io/github/forks/panjf2000/ants?color=%23ff4c00&logo=hubspot&style=for-the-badge">    </a>    </span>
 
@@ -36,7 +36,7 @@ showWordCount = false
 
 🦁 goproxy is a proxy server which can forward http or https requests to remote servers./  goproxy 是一个反向代理服务器，支持转发 http/https 请求。
 
-## As the contributor
+## 作为贡献者
 
 ### [go](https://github.com/golang/go)   <kbd title="主要编程语言">  Go  </kbd>    <span style="font-size: 15px;">                 <a title="Watchers" target="_blank" href="https://github.com/golang/go/watchers">    <img src="https://img.shields.io/github/watchers/golang/go?color=%2344cef6&logo=probot&style=for-the-badge">    </a>        <a title="Stars" target="_blank" href="https://github.com/golang/go/stargazers">    <img src="https://img.shields.io/github/stars/golang/go?color=%232edfa3&logo=trustpilot&style=for-the-badge">    </a>        <a title="Forks" target="_blank" href="https://github.com/golang/go/network/members">    <img src="https://img.shields.io/github/forks/golang/go?color=%23ff4c00&logo=hubspot&style=for-the-badge">    </a>    </span>
 

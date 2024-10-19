@@ -1,0 +1,62 @@
+languageCode = "zh-Hans"
+languageName = "Chinese"
+languageDirection = "ltr"
+weight = 2
+
+title = "潘少"
+copyright = "© 署名—非商业性使用—相同方式共享 4.0 协议国际版"
+
+[params]
+  dateFormat = "2006 January 2"
+  description = "潘少的个人网站，内容包含但不限于编程、博客、摄影、旅行、开源等。"
+
+[params.author]
+  name = "潘少"
+  image = "img/avatar.jpg"
+  headline = "一剑破万法"
+  bio = "代码 | 博客 | 摄影 | 旅行 | 开源 | 极客"
+  links = [
+    { email = "mailto:i@andypan.me" },
+  #   { link = "https://link-to-some-website.com/" },
+  #   { amazon = "https://www.amazon.com/hz/wishlist/ls/wishlist-id" },
+  #   { apple = "https://www.apple.com" },
+  #   { blogger = "https://username.blogspot.com/" },
+  #   { codepen = "https://codepen.io/username" },
+  #   { dev = "https://dev.to/username" },
+    { discord = "https://discord.gg/UyKD7NZcfH" },
+  #   { dribbble = "https://dribbble.com/username" },
+  #   { facebook = "https://facebook.com/username" },
+  #   { flickr = "https://www.flickr.com/photos/username/" },
+  #   { foursquare = "https://foursquare.com/username" },
+    { github = "https://github.com/panjf2000" },
+  #   { gitlab = "https://gitlab.com/username" },
+  #   { google = "https://www.google.com/" },
+  #   { google-scholar = "https://scholar.google.com/citations?user=user-id" },
+  #   { hashnode = "https://username.hashnode.dev" },
+    { instagram = "https://instagram.com/panjf2000" },
+  #   { keybase = "https://keybase.io/username" },
+  #   { kickstarter = "https://www.kickstarter.com/profile/username" },
+  #   { lastfm = "https://lastfm.com/user/username" },
+  #   { linkedin = "https://linkedin.com/in/username" },
+    { mastodon = "https://mastodon.social/@andypan" },
+  #   { medium = "https://medium.com/username" },
+  #   { mendeley = "https://www.mendeley.com/" },
+  #   { microsoft = "https://www.microsoft.com/" },
+  #   { orcid = "https://orcid.org/userid" },
+  #   { patreon = "https://www.patreon.com/username" },
+  #   { pinterest = "https://pinterest.com/username" },
+  #   { reddit = "https://reddit.com/user/username" },
+  #   { researchgate = "https://www.researchgate.net/profile/username" },
+  #   { slack = "https://workspace.url/team/userid" },
+  #   { snapchat = "https://snapchat.com/add/username" },
+  #   { soundcloud = "https://soundcloud.com/username" },
+  #   { stack-overflow = "https://stackoverflow.com/users/userid/username" },
+  #   { steam = "https://steamcommunity.com/profiles/userid" },
+  #   { telegram = "https://t.me/username" },
+  #   { tiktok = "https://tiktok.com/@username" },
+  #   { tumblr = "https://username.tumblr.com" },
+  #   { twitch = "https://twitch.tv/username" },
+  #   { whatsapp = "https://wa.me/phone-number" },
+    { x-twitter = "https://twitter.com/panjf2000" },
+  #   { youtube = "https://youtube.com/username" },
+  ]

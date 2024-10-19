@@ -11,27 +11,27 @@
 # ordered by weight from lowest to highest.
 
 [[main]]
-  name = "About"
+  name = "关于"
   pageRef = "about/index"
   weight = 10
 
 [[main]]
-  name = "Projects"
+  name = "项目"
   pageRef = "projects"
   weight = 15
 
 [[main]]
-  name = "Posts"
+  name = "文章"
   pageRef = "posts"
   weight = 20
 
 [[main]]
-  name = "Donation"
+  name = "捐赠"
   pageRef = "donation/index"
   weight = 25
 
 [[main]]
-  name = "Blog"
+  name = "博客"
   url = "https://blog.andypan.me/"
   weight = 30
 
