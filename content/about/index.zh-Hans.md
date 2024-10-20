@@ -36,11 +36,3 @@ isCJKLanguage: true
 ## 微信公众号？
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/wx_subscription_qr_code.png)
-
-## 微信
-
-<p align="center">
-<img src="https://res.strikefreedom.top/static_res/blog/figures/WeChat.JPG" width="400" />
-</p>
-
-有兴趣和博主交流编程、动漫、读书等等方面的同学，欢迎加我微信好友~~ （加好友时请备注：来自博客，以及注明姓名和来意。另外，附上一段简短的个人介绍会大大提高加好友通过率哦~~）
