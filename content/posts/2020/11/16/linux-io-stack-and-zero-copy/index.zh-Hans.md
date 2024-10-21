@@ -833,7 +833,7 @@ struct address_space_operations {
 
 ## 通用块层 (Generic Block Layer)
 
-通用块层 (GBL) 是一个内核组件，负责为系统中的所有块设备处理 I/O 请求。GBL 通过定义了一系列的函数，为 Linux I/O 系统提供以下的功能[^28]：
+通用块层 (GBL) 是一个内核组件，负责为系统中的所有块设备处理 I/O 请求，同时屏蔽不同的块设备驱动实现细节，为上层提供一个统一的编程接口。GBL 通过定义了一系列的函数，为 Linux I/O 系统提供以下的功能[^28]：
 
 - 将数据缓冲区放在高端内存 (如果存在) —— 仅当 CPU 访问其数据时，才将页框映射为内核中的线性地址空间，并在数据访问完后取消映射。
 - 通过一些附加手段，实现一种称之为"零拷贝"的模式，将磁盘数据直接存储在用户态的地址空间而非内核态的地址空间；事实上，内核为 I/O 数据传输使用的缓冲区所在的页框就映射在用户态的线性地址空间上。
@@ -1160,7 +1160,7 @@ echo "bfq" | sudo tee /sys/block/vda/queue/scheduler
 echo "kyber" | sudo tee /sys/block/vda/queue/scheduler
 ```
 
-前面我就讲过，如果是 SSD 硬盘，特别是 NVMe 的硬盘，因为硬盘本身的硬件性能已经非常高了，相比之下软件层面 (内核) 的 I/O 调度就不是特别重要了，除了一些特定的使用场景，通常用一些像 none 和 mq-deadline 这一类比较简单的 I/O 调度算法就足够了，使用 kyber 也是个不错的选择但是可能要对其内核参数进行调优，否则可能也会折损性能，使用复杂的 bfq 算法可能反而会事倍功半。我读过一篇对 Linux 上的多队列 I/O 调度器进行实测的论文，作者们针对 Linux 的blk-mq 调度器 —— mq-deadline、bfq、kyber 和 none 在 NVMe SSD 上的性能、开销和扩展性进行了全方位的测试。根据这篇论文的结论，在 NVMe SSD 上使用调优过的 kyber 调度器性能最高、扩展性最好，同时 CPU 开销也最低[^43]。
+前面我就讲过，如果是 SSD 硬盘，特别是 NVMe 的硬盘，因为硬盘本身的硬件性能已经非常高了，相比之下软件层面 (内核) 的 I/O 调度就不是特别重要了，除了一些特定的使用场景，通常用一些像 none 和 mq-deadline 这一类比较简单的 I/O 调度算法就足够了，使用 kyber 也是个不错的选择但是可能要对其内核参数进行调优，否则可能也会折损性能，使用复杂的 bfq 算法可能反而会事倍功半。我读过一篇对 Linux 上的多队列 I/O 调度器进行实测的论文，作者们针对 Linux 的 blk-mq 调度器 —— mq-deadline、bfq、kyber 和 none 在 NVMe SSD 上的性能、开销和扩展性进行了全方位的测试。根据这篇论文的结论，在 NVMe SSD 上使用调优过的 kyber 调度器性能最高、扩展性最好，同时 CPU 开销也最低[^43]，不过需要精心对参数进行调优，否则可能会有反效果。
 
 ## 块设备驱动层 (Block Device Driver)
 
@@ -1697,7 +1697,11 @@ void submit_bio(struct bio *bio)
 }
 ```
 
-从源码可以看出，`read_folio` 和 `readahead()` 最终都会调用 `ext4_mpage_readpages()`，在其中分配和打包好 `bio`，传入  `submit_bio()` 提交一个同步或者异步的 readahead I/O 请求到下层，***我们便进入了通用块层 (Generic Block Layer)***。接下来***会依次进入 I/O 调度层 (I/O Scheduling Layer)、块设备驱动层 (Block Device Driver Layer)，最后到块设备层 (Block Device Layer)***，从磁盘加载后面的相邻数据到 page cache。然后，调用 `copy_folio_to_iter()` 把数据拷贝到用户程序指定用户空间地址。最后，沿着函数栈层层回溯，最终从内核态返回到用户态。(对应的计算机硬件层面的 I/O 过程在下一章节介绍)
+从源码可以看出，`read_folio` 和 `readahead()` 最终都会调用 `ext4_mpage_readpages()`，在其中分配和打包好 `bio`，传入  `submit_bio()` 提交一个同步或者异步的 readahead I/O 请求到下层，***我们便进入了通用块层 (Generic Block Layer)***。接下来***会依次进入 I/O 调度层 (I/O Scheduling Layer)、块设备驱动层 (Block Device Driver Layer)，最后到块设备层 (Block Device Layer)***，从磁盘加载后面的相邻数据到 page cache，调用 `copy_folio_to_iter()` 把数据拷贝到用户程序指定用户空间地址。最后，沿着函数栈层层回溯，最终从内核态返回到用户态。(对应的计算机硬件层面的 I/O 过程在下一章节介绍)
+
+讲解到这里可以算是描绘了一个大概的轮廓，我个人认为对绝大部分的读者来说应该足够了，剩下的那些 I/O 系统层，比如 I/O 调度层，前面的剖析已经比较详细了，如果有读者还想进一步深入源码细节，我想可以考虑以后补充这部分的内容，至于块设备驱动层和块设备层，属于软硬件边界的部分，可能会涉及到比较多的硬件相关的细节，我感觉可能对大部分程序员读者来说不是很必要？
+
+// TODO: 补充 I/O 调度层、块设备驱动层和块设备层的源码实现细节。
 
 ***写操作***[^45] [^25]：
 
