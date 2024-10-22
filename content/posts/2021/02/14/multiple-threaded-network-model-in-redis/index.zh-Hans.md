@@ -3,7 +3,7 @@ title: Redis 多线程网络模型全面揭秘
 date: 2021-02-14
 params:
   author: 潘少
-summary: 全面剖析 Redis 6.0 新引入的多线程网络模型。
+summary: 从理论和源码层面全面剖析 Redis 6.0 新引入的多线程网络模型
 tags:
  - 揭秘系列
  - Reactor模式

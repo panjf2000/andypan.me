@@ -3,7 +3,7 @@ title: 美国之行(下篇)：圣地亚哥
 date: 2023-10-15
 params:
   author: 潘少
-summary: 受邀参加在 San Diego 举办的 Go Contributor Summit 2023 期间的所见所闻，和各路大神的交流心得，以及在 San Diego 的旅行记录。
+summary:  参加 Go Contributor Summit 2023 之圣地亚哥
 tags:
  - 游记
  - 旅游

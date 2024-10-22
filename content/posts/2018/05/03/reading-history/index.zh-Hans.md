@@ -3,7 +3,7 @@ title: 读史时哪些故事让你动容？
 date: 2018-05-03
 params:
   author: 潘少
-summary: 读一些演绎小说和历史的感悟。
+summary: 读一些演绎小说和历史的感悟
 tags:
  - 文学
  - 历史

@@ -3,7 +3,7 @@ title: Java 全文检索引擎工具包 Lucene 原理解析
 date: 2018-10-20
 params:
   author: 潘少
-summary: Lucene 入门介绍。
+summary: Lucene 入门介绍
 tags:
  - Lucene
  - 搜索引擎

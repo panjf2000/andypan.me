@@ -3,7 +3,7 @@ title: 美国之行(上篇)：旧金山和硅谷
 date: 2023-10-10
 params:
   author: 潘少
-summary: 受邀参加 Go Contributor Summit 2023，先行到旧金山和硅谷游览，期间所见所闻。
+summary: 参加 Go Contributor Summit 2023 之旧金山和硅谷
 tags:
  - 游记
  - 旅游

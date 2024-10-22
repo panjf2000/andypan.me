@@ -3,7 +3,7 @@ title: Go 网络模型 netpoll 全揭秘
 date: 2019-11-09
 params:
   author: 潘少
-summary: 本文将基于 Linux 平台来解析 Go netpoll 之 I/O 多路复用的底层是如何基于 epoll 封装实现的，从源码层层推进，全面而深度地解析 Go netpoll 的设计理念和实现原理，以及 Go 是如何利用 netpoll 来构建它的原生网络模型的。
+summary: 深度探究 Go 语言的运行时子系统 netpoll
 tags:
  - 揭秘系列
  - Reactor模式

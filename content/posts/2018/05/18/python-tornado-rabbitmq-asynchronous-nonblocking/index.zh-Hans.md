@@ -3,7 +3,7 @@ title: Tornado 配合 Celery 及 Rabbitmq 实现 web requests 异步非阻塞
 date: 2018-05-18
 params:
   author: 潘少
-summary: Tornado 和 Celery 的奇妙化学反应。
+summary: Tornado 和 Celery 的奇妙化学反应
 tags:
  - Celery
  - 异步

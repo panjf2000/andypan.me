@@ -3,7 +3,7 @@ title: Mac 开发系列之 python 多版本和环境管理
 date: 2018-06-13
 params:
   author: 潘少
-summary: pyenv 和 virtualenv 安装配置使用。
+summary: pyenv 和 virtualenv 安装配置和使用
 tags:
  - Mac
  - 多版本管理

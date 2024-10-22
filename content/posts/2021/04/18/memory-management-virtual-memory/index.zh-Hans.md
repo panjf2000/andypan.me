@@ -3,7 +3,7 @@ title: 虚拟内存精粹
 date: 2021-04-18
 params:
   author: 潘少
-summary: 剖析计算机虚拟内存的核心原理和应用。
+summary: 剖析计算机虚拟内存的核心原理和应用
 tags:
  - 揭秘系列
  - 内存管理

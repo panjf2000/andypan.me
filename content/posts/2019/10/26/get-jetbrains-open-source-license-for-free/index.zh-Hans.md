@@ -3,7 +3,7 @@ title: 如何免费获取正版 JetBrains 全家桶
 date: 2019-10-26
 params:
   author: 潘少
-summary: 教你如何不花钱就使用 JetBrains 全系列的产品！
+summary: 教你如何不花钱就使用 JetBrains 全系列的正版产品
 tags:
  - 开源
 isCJKLanguage: true

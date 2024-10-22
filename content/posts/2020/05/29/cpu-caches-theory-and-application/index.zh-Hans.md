@@ -3,7 +3,7 @@ title: 【译】CPU 高速缓存原理和应用
 date: 2020-05-29
 params:
   author: 潘少
-summary: 每一个程序员都应该学习的计算机硬件知识之 —— CPU 高速缓存。
+summary: 每一个程序员都应该学习的计算机硬件知识之 —— CPU 高速缓存
 tags:
  - 译文
  - 计算机硬件

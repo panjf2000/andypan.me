@@ -3,7 +3,7 @@ title: 两种方式迁移 Docker 的默认安装(存储)目录
 date: 2019-08-17
 params:
   author: 潘少
-summary: 如题。
+summary: 如题
 tags:
  - Ubuntu
  - Docker

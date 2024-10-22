@@ -3,7 +3,7 @@ title: Linux epoll 之 LT & ET 模式精粹
 date: 2024-08-23T23:20:12+08:00
 params:
   author: 潘少
-summary: 全面而深入地剖析 Linux epoll 的 LT 和 ET 模式。
+summary: 全面而深入地剖析 Linux epoll 的 LT 和 ET 模式
 tags:
  - Kernel
  - socket

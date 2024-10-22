@@ -4,7 +4,7 @@ date: 2024-08-05T18:52:29+08:00
 params:
   author: 潘少
 cover: /upload/half-open-connection-discovery.png
-summary: 全面介绍 TCP Keep-Alive 在 Unix 和 Windows 平台上的原理和应用。
+summary: 全面介绍 TCP Keep-Alive 在 Unix 和 Windows 平台上的原理和应用
 tags:
  - tcp
  - Kernel

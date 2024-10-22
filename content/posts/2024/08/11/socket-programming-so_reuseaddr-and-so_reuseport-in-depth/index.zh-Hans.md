@@ -3,7 +3,7 @@ title: Socket 编程之 SO_REUSEADDR & SO_REUSEPORT 精粹
 date: 2024-08-11T22:09:33+08:00
 params:
   author: 潘少
-summary: 跨平台全面解析 SO_REUSEADDR 和 SO_REUSEPORT 这两个 socket 选项。
+summary: 跨平台全面解析 SO_REUSEADDR 和 SO_REUSEPORT 这两个 socket 选项
 tags:
  - tcp
  - udp

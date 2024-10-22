@@ -3,7 +3,7 @@ title: TCP 连接管理和数据传输全揭秘
 date: 2024-08-04T21:03:29+08:00
 params:
   author: 潘少
-summary: TCP 协议及其实现解析。
+summary: TCP 协议的设计与实现
 tags:
  - 网络
  - tcp

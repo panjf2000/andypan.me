@@ -3,7 +3,7 @@ title: 【译】Spark 分区机制的应用及 PageRank 算法的实现
 date: 2018-09-09
 params:
   author: 潘少
-summary: PageRank 算法入门介绍。
+summary: PageRank 算法入门介绍
 tags:
  - Spark
  - Pagerank

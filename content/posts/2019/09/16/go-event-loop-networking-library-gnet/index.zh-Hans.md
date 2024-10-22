@@ -3,7 +3,7 @@ title: gnet —— 一个轻量级且高性能的 Go 网络框架
 date: 2019-09-16
 params:
   author: 潘少
-summary: gnet 是一个基于 Event-Loop 事件驱动的高性能和轻量级网络库。这个库直接使用 epoll 和 kqueue 系统调用而非标准 Golang 网络包：net 来构建网络应用，它的工作原理类似两个开源的网络库：libuv 和 libevent。 这个项目存在的价值是提供一个在网络包处理方面能和 Redis、Haproxy 这两个项目具有相近性能的 Go 语言网络服务器框架。 gnet 的亮点在于它是一个高性能、轻量级、非阻塞的纯 Go 实现的网络库。
+summary: gnet 是一个基于事件驱动和非阻塞 I/O 的轻量级且高性能网络框架
 tags:
  - Linux-IO
  - Epoll

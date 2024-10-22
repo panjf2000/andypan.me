@@ -3,7 +3,7 @@ title: Linux I/O 栈与零拷贝技术全揭秘
 date: 2020-11-16
 params:
   author: 潘少
-summary: 全面而深入地剖析 Linux I/O 和零拷贝技术。
+summary: 从理论和源码层面全面而深入地剖析 Linux I/O 栈和零拷贝技术
 tags:
  - Linux-IO
  - 揭秘系列

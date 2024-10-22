@@ -3,7 +3,7 @@ title: 周杰伦的《烟花易冷》和《洛阳伽蓝记》的前世今生
 date: 2018-06-03
 params:
   author: 潘少
-summary: 如题。
+summary: 如题
 tags:
  - 文学
  - 历史

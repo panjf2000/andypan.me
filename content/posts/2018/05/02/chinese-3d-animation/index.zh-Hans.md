@@ -3,7 +3,7 @@ title: 精品国漫荟萃之 3D 动画篇
 date: 2018-05-02
 params:
   author: 潘少
-summary: 介绍一些我个人认为比较优质的国产动漫。
+summary: 国产 3D 国产动漫推荐
 tags:
  - 随笔
  - 动漫

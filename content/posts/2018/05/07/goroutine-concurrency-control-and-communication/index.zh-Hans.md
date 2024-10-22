@@ -3,7 +3,7 @@ title: 深入 Go 语言之 goroutine 并发控制与通信
 date: 2018-05-07
 params:
   author: 潘少
-summary: 如题。
+summary: 如题
 tags:
  - Golang
 isCJKLanguage: true

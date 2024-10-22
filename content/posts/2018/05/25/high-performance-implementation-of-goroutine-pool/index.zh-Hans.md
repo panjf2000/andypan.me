@@ -3,7 +3,7 @@ title: GMP 并发调度器深度解析之手撸一个高性能 goroutine pool
 date: 2018-05-25
 params:
   author: 潘少
-summary: 本文将通过 runtime 对 goroutine 的调度分析，帮助大家理解它的机理和发现一些内存和调度的原理和问题，并且基于此提出一种个人的解决方案 — 一个高性能的 Goroutine Pool。
+summary: 如何实现一个高性能的 Goroutine Pool
 tags:
  - Goroutine-pool
  - 架构

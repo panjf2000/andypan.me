@@ -3,7 +3,7 @@ title: 【译】为什么 Kafka 这么快？
 date: 2020-06-07
 params:
   author: 潘少
-summary: Kafka 为什么这么快？一篇文章带你了解 kafka 的底层架构以及 Kafka 采用了哪些底层特性和绝妙设计才达到了如此高的消息分发和传输性能。
+summary: 深入分析 Kafka 为什么快
 tags:
  - 译文
  - Kafka

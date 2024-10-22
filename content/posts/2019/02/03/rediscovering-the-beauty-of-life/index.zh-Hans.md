@@ -3,7 +3,7 @@ title: 重新发现美好
 date: 2019-02-03
 params:
   author: 潘少
-summary: 从前，把生活过成诗，如今，在诗里寻找生活。步伐往前，眼眸向后。
+summary: 突发感悟
 tags:
  - 个人
  - 随笔

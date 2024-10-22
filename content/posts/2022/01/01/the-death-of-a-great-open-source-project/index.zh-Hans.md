@@ -3,7 +3,7 @@ title: 一个优秀的开源项目之死
 date: 2022-01-01
 params:
   author: 潘少
-summary: gogo-protobuf 即将寿终正寝，这是一个故事。
+summary: gogo-protobuf 正在死亡
 tags:
  - 个人
  - 随笔
