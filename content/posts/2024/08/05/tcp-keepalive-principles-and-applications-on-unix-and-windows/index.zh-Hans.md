@@ -114,7 +114,7 @@ Windows 对 TCP keepalive 的支持很混乱。早期 (Windows 2000 开始) 是�
 
 需要注意的是，illumos 在从 [OpenSolaris](https://en.wikipedia.org/wiki/OpenSolaris) 项目 fork 代码出来之后的第二年 (2011 年) 就实现了第二种方式[^30]，所以它一直都支持这两种 TCP keepalive 的方式；而 Solaris 则是要到 2018 年的 Solaris 11.4 才支持第二种方式，之前一直都是用的第一种。
 
-这里有两个坑：首先是 `TCP_KEEPALIVE_THRESHOLD`，这个套接字选项的最小值是 10 秒，最大值是 10 天，超过这个范围 `setsockopt()` 会直接报错，这一点 solaris 和 illumos 是一样的。但是第二种方式中的 `TCP_KEEPIDLE` 的值在两个系统上的取值范围是不一致的，在 solaris 上这个参数的取值范围和 `TCP_KEEPALIVE_THRESHOLD` 是一样的，而在 illumos 上的取值范围更加大 (但是在 man pages 中又没有写...)，所以如果你用 `setsockopt()` 在 solaris 设置 `TCP_KEEPIDLE` 小于 10 秒或者大于 10 天就会报错，但是在 illumos 这么做就不会有问题，而这个行为在 solaris 的文档中并没有写清楚[^29]，当时我在实现 Go 的 TCP keepalive 时使用了小于 10 秒的测试用例，于是测试代码在其他操作系统上都是一直成功的，只有在 solaris 上一直失败，让我百思不得其解，又因为 solaris 是闭源的操作系统所以看不到内核的源码，网上关于 solaris 的资料也太少，困扰了我很久，最后还是在看 illumos 的源码时发现了[^31]这部分有做取值范围检查：
+这里有两个坑：首先是 `TCP_KEEPALIVE_THRESHOLD`，这个套接字选项的最小值是 10 秒，最大值是 10 天，超过这个范围 `setsockopt()` 会直接报错，这一点 solaris 和 illumos 是一样的。但是第二种方式中的 `TCP_KEEPIDLE` 的值在两个系统上的取值范围是不一致的，在 solaris 上这个参数的取值范围和 `TCP_KEEPALIVE_THRESHOLD` 是一样的，而在 illumos 上的取值范围更加大 (但是在 man pages 中又没有写...)，所以如果你用 `setsockopt()` 在 solaris 设置 `TCP_KEEPIDLE` 小于 10 秒或者大于 10 天就会报错，但是在 illumos 这么做就不会有问题，而这个行为在 solaris 的文档中并没有写清楚[^29]，当时我在实现 Go 的 TCP keepalive 时使用了小于 10 秒的测试用例，于是测试代码在其他操作系统上都是一直成功的，只有在 solaris 上一直失败，让我百思不得其解，又因为 solaris 是闭源的操作系统所以看不到内核的源码，网上关于 solaris 的资料也太少，困扰了我很久，最后还是在看 illumos 的源码时发现了这部分有做取值范围检查[^31]：
 
 ```c
 		/*

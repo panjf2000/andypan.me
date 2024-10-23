@@ -3092,9 +3092,9 @@ io_uring 的基本结构如下所示[^31]：
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/ibm-linux-io-stack-io_uring.png)
 
-AIO 作为一个从诞生起就饱受批判的技术，在我看来对于我们现如今学习 Linux I/O 技术已经没有多大的价值了，不过很多数据库程序员还暂时无法摆脱它，毕竟在 io_uring 出来之前，Linux 平台上的异步 I/O 框架就只有一个选择，所以很多数据库代码里还遗留了很多 AIO 相关的代码，不过我想短期内数据库开发者也没有太大的动力去把 AIO 的代码替换成 io_uring，因为就算替换了也基本没有太大的性能提升，这是因为 AIO 和 io_uring 的底层原理其实没有本质的区别：二者的核心原理都是共享内存、异步提交、轮询结果等。
+AIO 作为一个从诞生起就饱受批判的技术，在我看来对于我们现如今学习 Linux I/O 技术已经没有多大的价值了，不过很多数据库程序员还暂时无法摆脱它，毕竟在 io_uring 出来之前，Linux 平台上的异步 I/O 框架就只有一个选择，所以很多数据库代码里还遗留了很多 AIO 相关的代码，不过我想短期内数据库开发者可能也没有太大的动力去把 AIO 的代码替换成 io_uring，这是因为 AIO 和 io_uring 的底层原理其实没有本质的区别：二者的核心原理都是共享内存、异步提交、轮询结果等技术，所以就算替换了也基本没有太大的性能提升。
 
-io_uring 相比 AIO 更加重要贡献还是在于提供了更规范和友好的 API 以及把异步 I/O 的应用范围从数据库扩大到所有场景 (比如网络等等)，所以对于非数据库从业者而言 AIO 真的没有太多深入研究的价值了，io_uring 现在是大势所趋，不出意外的话 Linux 未来的异步 I/O 标准就是它了，io_uring 通过 `mmap()` 让用户空间和内核空间共享 "提交队列" Submission Queue (SQ)、"完成队列" Completion Queue (CQ) 和 "提交队列条目数组" Submission Queue Entry (SQE) array，因此也算是"零拷贝"技术，我希望能为这篇文章补上 io_uring 的这部分内容以及 I/O 多路复用 (同步非阻塞+事件驱动) 的代表 epoll 方面的内容。
+io_uring 相比 AIO 更加重要贡献还是在于提供了更规范和友好的 API 以及把异步 I/O 的应用范围从数据库 (文件 I/O) 扩大到所有场景 (比如网络 I/O 等)，所以对于非数据库从业者而言 AIO 真的没有太多深入研究的价值了，io_uring 现在是大势所趋，不出意外的话 Linux 未来的异步 I/O 标准就是它了，io_uring 通过 `mmap()` 让用户空间和内核空间共享 "提交队列" Submission Queue (SQ)、"完成队列" Completion Queue (CQ) 和 "提交队列条目数组" Submission Queue Entry (SQE) array，因此理论上也可以算作"零拷贝"技术，我希望能为这篇文章补上 io_uring 的这部分内容以及 I/O 多路复用 (同步非阻塞+事件驱动) 的代表 epoll 方面的内容。
 
 但是这篇文章已经写了太长太长了，到目前为止已经超过了七万字，实在不适合再把 epoll 和 io_uring 这两个重磅炸弹加进来搅局，因此，epoll 和 io_uring 的方面的文章将分别独立成篇。敬请期待！
 
