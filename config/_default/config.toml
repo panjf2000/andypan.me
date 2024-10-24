@@ -19,3 +19,9 @@ summaryLength = 0
 [services]
   [services.disqus]
     shortname = 'andypan-me'
+
+[markup]
+  [markup.tableOfContents]
+    startLevel = 1
+    endLevel = 5
+    ordered = false
