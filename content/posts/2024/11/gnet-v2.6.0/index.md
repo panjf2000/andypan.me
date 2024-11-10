@@ -1,6 +1,5 @@
-
 +++
-date = 2024-11-09
+date = 2024-11-09T09:15:55+09:00
 title = 'Release of gnet v2.6.0'
 summary = 'Release of the official stable version of v2.6.0'
 layout = 'page'

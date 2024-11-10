@@ -1,9 +1,9 @@
 +++
-date = 2023-07-01T18:11:50+09:00
-title = 'Release of gnet v2.3.0'
-summary = 'Release of the official stable version of v2.3.0'
+date = 2023-07-01T20:22:32+09:00
+title = 'Announcing gnet v2.3.0'
+summary = 'Hello World! We present you, gnet v2.3.0!'
 layout = 'page'
-tags = ['Gnet', 'Open source', 'Release notes', 'Announcement']
+tags = ['Gnet', 'Open source', 'Release notes']
 [params]
   author = 'Andy Pan'
 showAuthor = true
@@ -12,9 +12,13 @@ showReadingTime = true
 showWordCount = true
 +++
 
+Today, I'm thrilled to announce the official release of [gnet v2.3.0](https://github.com/panjf2000/gnet/releases/tag/v2.3.0).
+
+P.S. Follow me on Twitter [@panjf2000](https://twitter.com/panjf2000) to get the latest updates about gnet!
+
 ## Intro
 
-The two major updates in this official release are [#460](https://github.com/panjf2000/gnet/pull/460) and [#461](https://github.com/panjf2000/gnet/pull/461).
+The two major updates in this release are [#460](https://github.com/panjf2000/gnet/pull/460) and [#461](https://github.com/panjf2000/gnet/pull/461).
 
 We introduced a new data structure `matrix` in [#460](https://github.com/panjf2000/gnet/pull/460) to displace the default `map` for managing connections internally, with the help of this new data structure, we can eliminate the pointers in `map` and store connections in the form of a matrix (an array of slices), which will significantly reduce GC (Garbage Collection) latency:
 

@@ -1,5 +1,5 @@
 +++
-date = 2020-03-13
+date = 2020-03-13T09:08:00+09:00
 title = 'Released gnet v1.0.0'
 summary = 'Released the official stable version of v1.0.0'
 layout = 'page'

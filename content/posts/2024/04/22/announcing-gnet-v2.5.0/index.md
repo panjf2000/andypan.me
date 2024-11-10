@@ -1,0 +1,29 @@
++++
+date = 2024-04-22T13:40:53+09:00
+title = 'Announcing gnet v2.5.0'
+summary = 'Hello World! We present you, gnet v2.5.0!'
+layout = 'page'
+tags = ['Gnet', 'Open source', 'Release notes']
+[params]
+  author = 'Andy Pan'
+showAuthor = true
+showDate = true
+showReadingTime = true
+showWordCount = true
++++
+
+The v2.5.0 for `gnet` is officially released!
+
+The two major updates in this release are [feat: support edge-triggered I/O](https://github.com/panjf2000/gnet/pull/576) and [feat: support multiple network addresses binding](https://github.com/panjf2000/gnet/pull/578).
+
+## Intro
+
+In [#576](https://github.com/panjf2000/gnet/pull/576), `gnet` implemented edge-triggered I/O on the basis of `EPOLLET` in `epoll` and `EV_CLEAR` in `kqueue`. Before v2.5.0, `gnet` had been using level-triggered I/O under the hood, now developers are able to switch to edge-triggered I/O via the functional option: `EdgeTriggeredIO` when developing and deploying `gnet` services. In certain specific scenarios, edge-triggered I/O may outperform level-triggered I/O, as a result of which, switching `gnet` from LT mode to ET mode can lead to significant performance improvements. But note that this performance boost is only a theoretical inference and may only occur under specific circumstances. ***Therefore, please use ET mode with caution and conduct benchmark tests to collect sufficient numbers before the deployment in production.***
+
+Another useful new feature is [#578](https://github.com/panjf2000/gnet/pull/578), with which developers are allowed to bind multiple addresses(IP:Port) in one `gnet` instance. This feature makes it possible to build and run a `gnet` server that serves various protocols or a specific set of backend services.
+
+In addition to these two major features, we've also made a good deal of code optimizations: refactoring and streamlining the core code, as well as optimising the structure.
+
+Visit the [release notes](https://github.com/panjf2000/gnet/releases/tag/v2.5.0) for more details.
+
+P.S. Follow me on Twitter [@panjf2000](https://twitter.com/panjf2000) to get the latest updates about gnet!
