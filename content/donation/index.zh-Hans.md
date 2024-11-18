@@ -63,6 +63,26 @@ showWordCount = false
           <img src="https://avatars.githubusercontent.com/u/30060632" width="100" alt="魔法使い" />
         </a>
       </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://github.com/rfyiamcool">
+          <img src="https://avatars.githubusercontent.com/u/3785409" width="100" alt="rfyiamcool.rui" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://github.com/ivoras">
+          <img src="https://avatars.githubusercontent.com/u/2300424" width="100" alt="Ivan Voras" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://github.com/hi-glenn">
+          <img src="https://avatars.githubusercontent.com/u/7918942" width="100" alt="hi-glenn" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://github.com/XiaoK29">
+          <img src="https://avatars.githubusercontent.com/u/38639105" width="100" alt="nil" />
+        </a>
+      </td>
     </tr>
   </tbody>
 </table>
