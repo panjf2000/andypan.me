@@ -46,7 +46,7 @@ type EventLoop interface {
 }
 ```
 
-Check out [gnet.EventLoop](https://pkg.go.dev/github.com/panjf2000/gnet/v2@v2.8.0) for more details.
+Check out [gnet.EventLoop](https://pkg.go.dev/github.com/panjf2000/gnet/v2@v2.8.0#EventLoop) for more details.
 
 For more details, please refer to the [release notes](https://github.com/panjf2000/gnet/releases/tag/v2.8.0).
 
