@@ -1024,7 +1024,7 @@ CFQ 算法的主要目标是尽量公平地把磁盘 I/O 带宽分配给所有�
 
 #### 多队列 I/O 调度程序 (Multi-queue I/O schedulers)
 
-随着 SSD 硬盘逐渐取代 HDD 硬盘成为主流，磁盘的 IOPS 也如同坐火箭般高速飞升，随机 I/O 的 IOPS 从原来的几百到现在的十万级甚至未来的百万级。于是局面反转了，原先的性能瓶颈在磁盘，现如今转移到了 Linux 内核的 SQ I/O 调度程序上，再加上以 [NUMA][numa] (Non-Uniform Memory Access) 多核架构和 [NVMe][nvme] (Non-Volatile Memory express) 通信协议的横空出世，计算机系统的多核处理与数据传输能力也与日俱增，更是进一步加剧了内核的 SQ I/O 调度架构的性能滞后。因此内核亟需引入新的 I/O 调度架构来跟上 SSD 的速度，将 SSD 的速度潜能都发挥出来。于是 Linux I/O Block Layer 的 maintainer —— [Jens Axboe](https://en.wikipedia.org/wiki/Jens_Axboe) (同时也是 CFQ/Noop/Deadline I/O 调度器、`splice()` 和 `io_uring` 的作者) 再次出手，设计了 Multi-queue I/O scheduler，补上了这一部分的性能差。
+随着 SSD 硬盘逐渐取代 HDD 硬盘成为主流，磁盘的 IOPS 也如同坐火箭般高速飞升，随机 I/O 的 IOPS 从原来的几百到现在的十万级甚至未来的百万级。于是局面反转了，原先的性能瓶颈在磁盘，现如今转移到了 Linux 内核的 SQ I/O 调度程序上，再加上以 [NUMA][numa] (Non-Uniform Memory Access) 多核架构和 [NVMe][nvme] (Non-Volatile Memory express) 通信协议的横空出世，计算机系统的多核处理与数据传输能力也与日俱增，更是进一步加剧了内核的 SQ I/O 调度架构的性能滞后。因此内核亟需引入新的 I/O 调度架构来跟上 SSD 的速度，将 SSD 的速度潜能都发挥出来。于是 Linux I/O Block Layer 的 maintainer —— [Jens Axboe](https://en.wikipedia.org/wiki/Jens_Axboe) (同时也是 CFQ/Noop/Deadline I/O 调度器、`splice()` 和 `io_uring` 的作者) 再次出手，设计了 Multi-queue I/O scheduler，补齐了这一部分的性能差。
 
 根据 Jens Axboe 等内核开发者的调研，他们总结出了 SQ I/O 调度程序在扩展性方面的三个主要的问题[^35]：
 
@@ -1054,7 +1054,7 @@ CFQ 算法的主要目标是尽量公平地把磁盘 I/O 带宽分配给所有�
 
 明确了需求之后，我们就可以着手设计新架构了，整个架构的核心是一个两级队列的设计，通过引入这个两级队列来降低队列锁粒度和减少锁竞争，同时还能简化原先那复杂的调度算法，将部分系统复杂度下沉到硬件设备层，其核心要点分为软件和硬件两个层面[^35]：
 
-- ***Software Staging Queues 软件暂存队列*** (下文简称为 SSQ)：将原来的那个 SQ I/O 队列改造成可调整的 MQ (可配置任意的队列数量，甚至可以退化成单队列)，同时为 NUMA 的每一个 socket (CPU 槽) 配备一个 I/O 队列，也可以为每一个 core 配备一个。这样的话，一个带有 4 个 6 核的 sockets  的 NUMA 系统，它的 I/O 队列数的范围在 4 ~ 24 个之间。如此便能极大地减少锁竞争。在多数 CPU 都提供了大容量 L3 cache 的现状下，一个 socket 里的多个 cores 即便是共享 L3 也足够快了，没必要让每个 core 再独占一个 I/O queue。所以每个 socket 配备一个 I/O queue 通常是一个性价比较高的选择。
+- ***Software Staging Queues 软件暂存队列*** (下文简称为 SSQ)：将原来的那个 SQ I/O 队列改造成可调整的 MQ (可配置任意的队列数量，甚至可以退化成单队列)，同时为 NUMA 的每一个 socket (CPU 槽) 配备一个 I/O 队列，也可以为每一个 core 配备一个。这样的话，一个带有 4 个 6 核的 socket 的 NUMA 系统，它的 I/O 队列数的范围在 4 ~ 24 个之间。如此便能极大地减少锁竞争。在多数 CPU 都提供了大容量 L3 cache 的现状下，一个 socket 里的多个 cores 即便是共享 L3 也足够快了，没必要让每个 core 再独占一个 I/O queue。所以每个 socket 配备一个 I/O queue 通常是一个性价比较高的选择。
 - ***Hardware Dispatch Queues 硬件调度队列*** (下文简称为 HDQ)：I/O 请求从 SSQ 出来之后，不会被直接推送给下层的块设备驱动程序，而是会被发送到一个硬件调度队列 HDQ，这个队列是由磁盘驱动提供的，队列数量通常取决于设备驱动支持的硬件上下文 (contexts) 数量，设备驱动会基于 MSI-X (Message Signal Interrupts) 标准提供 1 ~ 2048 个队列。大部分 SSD 只提供了一个队列。在针对 SSD 的 MQ 架构下，通常不再需要 I/O 请求基于磁盘地址保持全局有序，也就是可以不用再执行排序优化了，而是让硬件为每一个 NUMA node 或者 CPU 配备一个本地队列从而避免跨核内存访问。
 
 ##### 硬件调度队列 HDQ 的数量
@@ -1847,7 +1847,7 @@ CPU 高速缓存的地址有 m 位，形成 M = 2<sup>m</sup> 个不同的地址
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/virtual-memory-address-structure.png)
 
-其次是 虚拟别名 (virtual aliasing)，文章开头我写过虚拟地址由虚拟页号和偏移量构成，还可以进一步细化成偏移 (`offset`，上图 9.15 中的 VPO)、索引 (`index`，上图 9.15 的 TLB index) 和标签 (`tag`，上图 9.15 的 TLB tag)。
+其次是虚拟别名 (virtual aliasing)，文章开头我写过虚拟地址由虚拟页号和偏移量构成，还可以进一步细化成偏移 (`offset`，上图 9.15 中的 VPO)、索引 (`index`，上图 9.15 的 TLB index) 和标签 (`tag`，上图 9.15 的 TLB tag)。
 
 ![](https://res.strikefreedom.top/static_res/blog/figures/cpu-cache-line-structure.png)
 
@@ -3146,6 +3146,7 @@ Linux 的 Zero Copy 技术可以归纳成以下三大类：
 - [Linux Block IO—present and future](https://www.landley.net/kdocs/ols/2004/ols2004v1-pages-51-62.pdf)
 - [The block I/O layer I/O schedulers](https://students.mimuw.edu.pl/ZSO/Wyklady/13_IOschedulers/IO_schedulers.pdf)
 - [Linux I/O schedulers](https://wiki.ubuntu.com/Kernel/Reference/IOSchedulers)
+- [Linux block subsystem](https://docs.kernel.org/block/index.html)
 - [CPU cache](https://en.wikipedia.org/wiki/CPU_cache)
 - [Virtual Address Aliasing](https://www.intel.com/content/www/us/en/docs/programmable/683836/current/virtual-address-aliasing.html)
 - [Zero Copy I: User-Mode Perspective](https://www.linuxjournal.com/article/6345)
