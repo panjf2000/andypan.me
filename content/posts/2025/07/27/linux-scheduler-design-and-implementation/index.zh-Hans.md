@@ -1,16 +1,20 @@
-+++
-date = 2025-07-27T20:25:45+09:00
-title = 'The retrospect and prospect of Linux schedulers'
-summary = 'The overview of Linux schedulers along with introducing the EEVDF scheduler, a new approach to process scheduling.'
-layout = 'page'
-tags = ['Linux', 'Kernel', 'Scheduler', 'O(1)', 'CFS', 'EEVDF']
-[params]
-  author = 'Andy Pan'
-showAuthor = true
-showDate = true
-showReadingTime = true
-showWordCount = true
-+++
+---
+title: Linux 调度器设计与实现
+date: 2025-07-27T20:25:45+09:00
+params:
+  author: 潘少
+summary: 全面解读 Linux 内核的调度器设计与实现，内容涵盖 O(1) 调度器、CFS 调度器以及最新一代的 EEVDF 调度器的论文导读、理论基础和代码实现。
+tags:
+ - Linux
+ - Kernel
+ - Scheduler
+ - O(1)
+ - CFS
+ - EEVDF
+ - 调度器
+ - 内核
+isCJKLanguage: true
+---
 
 {{< katex >}}
 
@@ -557,7 +561,7 @@ void scheduler_tick(void)
 }
 ```
 
-这里的 `curr->sched_class` 就是一个调度类，我们讨论的是 CFS 调度器，所以调度类的实例就是 `fair_sched_class`，它的 成员函数 `task_tick()` 就是 `task_tick_fair()`[^16] [^17] [^18] [^19]：
+这里的 `curr->sched_class` 就是一个调度类，我们讨论的是 CFS 调度器，所以调度类的实例就是 `fair_sched_class`，它的 成员函数 `task_tick()` 就是 `task_tick_fair()`[^16] [^17] [^18]：
 
 ```c
 static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
@@ -617,7 +621,19 @@ static void update_curr(struct cfs_rq *cfs_rq)
 
 	/* ... */
 }
+```
 
+#### 调度抢占
+
+抢占是指调度器强行中断当前正在运行的任务，切换上下文，换上另一个任务到 CPU 上执行。抢占是调度器实现多任务调度的核心手段，也是实现公平性调度的关键。抢占的时机通常是在以下几种情况下：
+
+ - 当前任务的 CPU 时间片用完了
+ - 有更高优先级的进程需要运行
+ - 任务阻塞，比如等待 I/O 事件、加锁或者等待系统信号等
+ - 从系统调用或者中断返回到用户态时
+ - ...
+
+```c
 static void
 check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 {
@@ -660,9 +676,9 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 		resched_curr(rq_of(cfs_rq));
 }
 ```
-#### 调度抢占
+#### 调度入口
 
-需要注意的是，`resched_curr()` 函数只是给当前任务打上一个 `TIF_NEED_RESCHED` 标记，**并不会立即抢占当前任务**，而是在进程从中断或者系统调用返回到用户态空间时，检查当前进程的调度标志，如果标记被设置了，则会调用 `schedule()` 函数进行抢占，重新选择 vruntime 最小的任务来运行。`schedule()` 内核调度器的主入口，内核中很多地方都会有这个函数的埋点，所以在内核运行期间，调度器代码一直在执行，这个函数代码精简后如下[^20] [^21]：
+需要注意的是，`resched_curr()` 函数只是给当前任务打上一个 `TIF_NEED_RESCHED` 标记，**并不会立即抢占当前任务**，而是在进程从中断或者系统调用返回到用户态空间时，检查当前进程的调度标志，如果标记被设置了，则会调用 `schedule()` 函数进行抢占，重新选择 vruntime 最小的任务来运行。`schedule()` 是内核调度器的入口，内核中很多地方都会有这个函数的埋点，所以在内核运行期间，调度器代码一直在执行，这个函数代码精简后如下[^20] [^21]：
 
 ```c
 asmlinkage __visible void __sched schedule(void)
@@ -799,9 +815,9 @@ restart:
 
 这个优化路径是基于这样一个事实：大部分人都是使用 Linux 作为一个分时系统而非实时系统，这种情况下系统中绝大部分任务都是 CFS 调度器管理的，也就是说系统中优先级最高的调度类就是 CFS 调度类，所以可以使用 `likely` 编译器指令来优化 CPU 流水线的分支预测功能，提高调度器的性能。
 
-#### 进程创建和唤醒
+#### 调度调整
 
-// TODO：分析 place_entity 函数
+// TODO：解读内核的 `place_entity()` 函数，分析调度器在内核创建和唤醒进程时创建调度实体然后插入 runqueue 并调整 vruntime 的流程。
 
 ## EEVDF 调度器
 
@@ -994,7 +1010,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 
 通过调整 `nice` 和 `sched_runtime` 这两个参数，可以分别增加任务的权重和减少任务的时间片长度，如此一来 virtual deadline 也会随之变小，而 EEVDF 调度任务的时候会优先从红黑树中挑选出 virtual deadline 最小的调度实体来运行，这样就可以保证延迟敏感型任务会被更早地调度运行。此外，EEVDF 还会用 virtual deadline 更小的任务来抢占正在运行中的 virtual deadline 更大的任务，从而进一步降低延迟敏感型任务的延迟时间。有人可能要问了，虽然这种调度算法可以使得延迟敏感型的任务更早地被执行，但是每次的 CPU 时间片也变少了，也就是任务被打断(抢占)的频率也更高了，这样似乎反而会导致任务的延迟更大？内核团队给出的答案是：延迟敏感型的任务通常来讲并不需要太多的 CPU 时间，所以单次时间片变小对这类任务的影响并不算大，调度时机才是最重要的，也就是说这类任务最迫切需要的是尽早被放到 CPU 上去运行。举个例子，假设有一个性能敏感的任务被创建了，整个任务只需要 1ms 就可以执行完，但是由于 CFS 调度器的公平性调度特性，这个任务可能需要等到 10ms 之后才能被调度运行，那么延迟至少就要 10ms。而如果使用 EEVDF 调度器，用户则可以设置 `sched_runtime` 为 1ms，那么该任务的 virtual deadline 值就会非常小，EEVDF 调度器会优先调度这个任务，即便给它分配的 CPU 时间片只有 1ms，但由于该任务的总耗时也就 1ms，所以第一次调度就可以完成任务的执行，延迟也就只有 1ms。
 
-### 调度流程
+### 调度原理
 
 EEVDF 调度器的核心策略就是挑选出 virtual deadline 最小的调度实体来运行。宏观层面来看，这个过程和 CFS 调度器的挑选 vruntime 最小的调度实体来运行是类似的，但是多了一步 lag 计算。先来回顾一下 lag 的计算公式：$lag_i = S - s_i = w_i \times (V - v_i)$，又因为 eligible 必须符合 $lag_i \geq 0$，可得 $V \geq v_i$，而 $V = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i}{W} + v0$，所以可以推导出 $\sum_{i=0}^{n-1} (v_i - v0) \times w_i \geq (v_i -v0) \times \sum_{i=0}^{n-1} w_i$，根据上文可知是 `cfs_rq->avg_vruntime` >= (`se->vruntime` - `cfs_rq->min_vruntime`) * `cfs_rq->avg_load`，对应的内核源码是 `vruntime_eligible()` 函数，源码如下[^28]：
 
@@ -1094,11 +1110,11 @@ found:
 }
 ```
 
-## 调度入口
+## 调度起点
 
-// TODO
+// TODO：解读内核 `cpu_startup_entry()` 函数，分析内核启动时的调度起点，也就是调度器的初始化过程和后续的运行。
 
-## 参考&延伸
+# 参考&延伸
  - [sched(7) — Linux manual page](https://man7.org/linux/man-pages/man7/sched.7.html)
  - [Linux Kernel Development, Third Edition](https://www.oreilly.com/library/view/linux-kernel-development/9780768696974/)
  - [Understanding the Linux Kernel, 3rd Edition](https://www.oreilly.com/library/view/understanding-the-linux/0596005652/)
@@ -1113,7 +1129,6 @@ found:
  - [Digging into the Linux scheduler](https://deepdives.medium.com/digging-into-linux-scheduler-47a32ad5a0a8)
  - [CFS: Completely fair process scheduling in Linux](https://opensource.com/article/19/2/fair-scheduling-linux)
  - [CFS Scheduler in the Linux Kernel](https://puranikvinit.hashnode.dev/cfs-scheduler)
- - [Tuning the Linux Kernel Scheduler](https://doc.opensuse.org/documentation/leap/archive/42.1/tuning/html/book.sle.tuning/cha.tuning.taskscheduler.html)
  - [Tuning the Linux Kernel Scheduler](https://documentation.suse.com/sles/15-SP5/html/SLES-all/cha-tuning-taskscheduler.html)
  - [The Linux Kernel Scheduler](https://www.youtube.com/watch?v=5WtnnzpwEuA)
  - [Earliest Eligible Virtual Deadline First : A Flexible and Accurate Mechanism for Proportional Share Resource Allocation](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=805acf7726282721504c8f00575d91ebfd750564)
