@@ -817,7 +817,101 @@ restart:
 
 #### 调度调整
 
-// TODO：解读内核的 `place_entity()` 函数，分析调度器在内核创建和唤醒进程时创建调度实体然后插入 runqueue 并调整 vruntime 的流程。
+前面是直接从已存在的进程开始分析调度器的工作流程，而进程的创建和休眠唤醒也是调度器工作的重要组成部分。我们都知道类 UNIX 系统中的进程创建是通过 [`fork()`](https://pubs.opengroup.org/onlinepubs/9699919799/) 来完成的，Linux 内核中的 [`fork(2)`](https://man7.org/linux/man-pages/man2/fork.2.html) 系统调用的主要代码逻辑在 `kernel_clone()` 函数中，它又会调用 `copy_process()` 来创建一个新的进程副本，内核使用 CoW (Copy on Write 写时复制) 技术，子进程不再复制数据其父进程的数据，而只是复制它的页表，那么 `fork()` 之后父子进程的虚拟地址空间就会指向相同的物理地址，因为进程彼此的虚拟地址空间和页表是私有的，因此这种操作是允许的，于是子进程的所有读操作访问的数据在内存中就只有一份，父子进程共享，只有当子进程进行写操作的时候才会分配新的内存页。
+
+这里和调度器相关的函数主要是 `sched_fork()` 和 `sched_cgroup_fork()`，前者的功能主要是初始化新进程的一些基础的调度信息 (虚拟时间、权重等) 和调度类，CFS 调度器的话调度类就是 `fair_sched_class`，后者会调用调度类的 `task_fork()` 方法，主要是为进程的调度实体计算 vruntime 和绑定到当前 CPU 的 runqueue。
+
+`sched_fork()` 的主要代码逻辑如下[^4] [^5]：
+
+```c
+static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
+{
+	p->on_rq			= 0;
+
+	p->se.on_rq			= 0;
+	p->se.exec_start		= 0;
+	p->se.sum_exec_runtime		= 0;
+	p->se.prev_sum_exec_runtime	= 0;
+	p->se.nr_migrations		= 0;
+	p->se.vruntime			= 0;
+
+	/* ... */
+}
+
+int sched_fork(unsigned long clone_flags, struct task_struct *p)
+{
+	__sched_fork(clone_flags, p);
+	/*
+	 * We mark the process as NEW here. This guarantees that
+	 * nobody will actually run it, and a signal or other external
+	 * event cannot wake it up and insert it on the runqueue either.
+	 */
+	p->__state = TASK_NEW;
+
+	/*
+	 * Make sure we do not leak PI boosting priority to the child.
+	 */
+	p->prio = current->normal_prio;
+
+	uclamp_fork(p);
+
+	/*
+	 * Revert to default priority/policy on fork if requested.
+	 */
+	if (unlikely(p->sched_reset_on_fork)) {
+		if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
+			// 设置调度策略等信息
+			p->policy = SCHED_NORMAL;
+			p->static_prio = NICE_TO_PRIO(0);
+			p->rt_priority = 0;
+		} else if (PRIO_TO_NICE(p->static_prio) < 0)
+			p->static_prio = NICE_TO_PRIO(0);
+
+		p->prio = p->normal_prio = p->static_prio;
+		set_load_weight(p, false); // 设置进程的权重值
+
+		/*
+		 * We don't need the reset flag anymore after the fork. It has
+		 * fulfilled its duty:
+		 */
+		p->sched_reset_on_fork = 0;
+	}
+
+	if (dl_prio(p->prio))
+		return -EAGAIN;
+	else if (rt_prio(p->prio))
+		p->sched_class = &rt_sched_class;
+	else
+		p->sched_class = &fair_sched_class; // 设置 CFS 调度类
+
+	/* ... */
+}
+```
+
+接下来是 `sched_cgroup_fork()`，cgroup 是内核的资源限制技术，主要用于对进程进行资源管理和限制，是当下容器技术的基础，这里我们不涉及这方面的内容，所以 cgroup 可以忽略，只看核心代码逻辑，如下[^6]：
+
+```c
+void sched_cgroup_fork(struct task_struct *p, struct kernel_clone_args *kargs)
+{
+	unsigned long flags;
+
+	/* ... */
+
+	rseq_migrate(p);
+	/*
+	 * We're setting the CPU for the first time, we don't migrate,
+	 * so use __set_task_cpu().
+	 */
+	__set_task_cpu(p, smp_processor_id());
+
+	// 这里是 CFS 调度器，所以 task_fork() 就是 task_fork_fair()，
+	// 该方法会完成新进程所需的调度信息的初始化工作，包括设置 vruntime 和
+	// runqueue 绑定。
+	if (p->sched_class->task_fork)
+		p->sched_class->task_fork(p);
+	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
+}
+```
 
 ## EEVDF 调度器
 
@@ -1136,6 +1230,8 @@ found:
 [^1]: [kernel/sched/sched.h#L2207](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/sched.h#L2207)
 [^2]: [kernel/sched/sched.h#L2302](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/sched.h#L2302)
 [^3]: [kernel/sched/core.c#L5998](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/core.c#L5998)
+[^4]: [kernel/sched/core.c#L4494](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/core.c#L4494)
+[^5]: [kernel/sched/core.c#L4727](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/core.c#L4727)
 [^4]: [kernel/sched/core.c#L11495](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/core.c#L11495)
 [^5]: [include/linux/sched.h#L738](https://elixir.bootlin.com/linux/v6.5/source/include/linux/sched.h#L738)
 [^6]: [include/linux/sched.h#L548](https://elixir.bootlin.com/linux/v6.5/source/include/linux/sched.h#L548)
