@@ -137,7 +137,7 @@ Stop 调度类的主要用途是：
 
 ### 非实时策略
 
- - ***SCHED_NORMAL***：以前叫 SCHED_OTHER。用于普通进程调度的非实时调度策略，CFS 调度器使用的默认策略。每个任务会有一个权重值 nice，范围是 [-20,19]，nice 值越大优先级越低，反之越高，任务按照 vruntime (虚拟时间) 从小到大排列，调度器每次选择 vruntime 最小的任务来运行，vruntime 的计算是加权的，取决于 nice 值。SCHED_NORMAL 策略的任务的优先级低于 SCHED_FIFO 和 SCHED_RR 策略的任务，所以可以被后两类任务抢占。
+ - ***SCHED_NORMAL***：以前叫 SCHED_OTHER。用于普通进程调度的非实时调度策略，CFS 调度器使用的默认策略。每个任务会有一个权重值 nice，范围是 [-20, 19]，nice 值越大优先级越低，反之越高，任务按照 vruntime (虚拟时间) 从小到大排列，调度器每次选择 vruntime 最小的任务来运行，vruntime 的计算是加权的，取决于 nice 值。SCHED_NORMAL 策略的任务的优先级低于 SCHED_FIFO 和 SCHED_RR 策略的任务，所以可以被后两类任务抢占。
  - ***SCHED_BATCH***：衍生自 SCHED_NORMAL，非实时批处理调度策略，适用于一些不需要实时响应的 CPU 密集型批处理任务。这类任务的一个优势是调度器会承诺尽量不抢占，所以它们运行的时间可以更长，所以能更充分地利用 CPU 缓存，但交互性差。
  - ***SCHED_IDLE***：空闲调度策略，优先级最低，用于调度 CPU 空闲时的任务。SCHED_IDLE 策略的任务只有在没有其他可运行任务时才会被调度。
 
@@ -1396,7 +1396,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 
 ### 调度原理
 
-EEVDF 调度器的核心策略就是挑选出 virtual deadline 最小的调度实体来运行。宏观层面来看，这个过程和 CFS 调度器的挑选 vruntime 最小的调度实体来运行是类似的，但是多了一步 lag 计算。先来回顾一下 lag 的计算公式：\\(lag_i = S - s_i = w_i \times (V - v_i)\\)，进程 \\(i\\) eligible 必须满足 \\(lag_i \geq 0\\)，可得 \\(V \geq v_i\\)，而 \\(V = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i}{W} + v0\\)，所以可以推导出 \\(\sum_{i=0}^{n-1} (v_i - v0) \times w_i \geq (v_i -v0) \times \sum_{i=0}^{n-1} w_i\\)，根据上文可知是 `cfs_rq->avg_vruntime` >= (`se->vruntime` - `cfs_rq->min_vruntime`) * `cfs_rq->avg_load`，对应的内核源码是 `vruntime_eligible()` 函数，源码如下[^39]：
+EEVDF 调度器的核心策略就是挑选出 virtual deadline 最小的调度实体来运行。宏观层面来看，这个过程和 CFS 调度器的挑选 vruntime 最小的调度实体来运行是类似的，但是多了一步 lag 计算。先来回顾一下 lag 的计算公式：\\(lag_i = S - s_i = w_i \times (V - v_i)\\)，又因为 eligible 进程 \\(i\\) 必须满足条件：\\(lag_i \geq 0\\)，可得 \\(V \geq v_i\\)，而 \\(V = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i}{W} + v0\\)，所以可以推导出 \\(\sum_{i=0}^{n-1} (v_i - v0) \times w_i \geq (v_i -v0) \times \sum_{i=0}^{n-1} w_i\\)，根据上文可知是 `cfs_rq->avg_vruntime` >= (`se->vruntime` - `cfs_rq->min_vruntime`) * `cfs_rq->avg_load`，对应的内核源码是 `vruntime_eligible()` 函数，源码如下[^39]：
 
 ```c
 static int vruntime_eligible(struct cfs_rq *cfs_rq, u64 vruntime)
