@@ -18,6 +18,12 @@ isCJKLanguage: true
 
 {{< katex >}}
 
+# 导言
+
+由于单 CPU 核心的性能上限，现代计算机的进化方向很早就转向了多核心架构。多核心架构使得操作系统能够同时运行多个任务，这个时候高效的多任务调度就成为了刚需，因此多任务调度器应运而生，操作系统使用调度器来决定这些任务的执行顺序和管理资源分配。Linux 作为应用最广泛的开源操作系统内核，其调度器设计和实现一直是操作系统领域的重要研究课题。本文将全面解读 Linux 内核的调度器设计与实现，内容涵盖早期的 O(1) 调度器、服役时间最长的 CFS 调度器以及最新一代的 EEVDF 调度器。通过本文，你将了解到 Linux 调度器的设计理念、实现原理以及代码实现细节。
+
+P.S. 本文中"任务"和"进程"是同义词，文中可能会交替使用这两个词，它们表示同一个概念。文中的代码片段来自不同的 Linux 内核版本：CFS 调度器的代码片段来自 v6.5 版本，EEVDF 调度器的代码片段来自 v6.15 版本。
+
 # 进程和线程
 
 在 Linux 内核中，进程 process 通过数据结构 `task_struct` 来表示，每一个进程都是一个**任务** task，`task_struct` 也称之为***进程描述符 (process descriptor)***。对于每一个进程，`task_struct` 始终都是在内存中的，它包含了内核管理进程所需的所有信息，比如调度参数、已打开的文件描述符列表、进程状态、已挂起的信号、内存地址空间等。进程描述符从进程被创建开始就一直存在于内核堆栈之中，直至进程被销毁。
@@ -82,7 +88,13 @@ struct sched_class {
 };
 ```
 
-Linux 内核中一共有五种调度类实现，分别是 `stop_sched_class`/`dl_sched_class`/`rt_sched_class`/`fair_sched_class`/`idle_sched_class`。
+Linux 内核中一共有五种调度类实现，分别是：
+
+ - `stop_sched_class`
+ - `dl_sched_class`
+ - `rt_sched_class`
+ - `fair_sched_class`
+ - `idle_sched_class`
 
 ### stop_sched_class
 
@@ -230,14 +242,14 @@ const int sched_prio_to_weight[40] = {
 };
 ```
 
-任务的权重值和 nice 值之间的关系可以通过公式来计算：$weight = \frac{1024}{1.25^{nice}}$
+任务的权重值和 nice 值之间的关系可以通过公式来计算：\\(weight = \frac{1024}{1.25^{nice}}\\)
 
 通过上面代码的注释可以知道，选取 1.25 作为 nice 值的底数是为了保证每次 nice 值每变化 1 时，CPU 时间的分配会有 10% 的变化。也就是说，如果一个任务的 nice 值从 0 变成 1，那么它将获得大约 10% 更少的 CPU 时间；反之，如果一个任务的 nice 值从 0 变成 -1，那么它将获得大约 10% 更多的 CPU 时间。
 
 理论上来讲，当系统中有多个不同权重的进程时，任一个进程应该分配到的 CPU 时间应该是和它的权重成正比的，比例系数是该进程的权重除以所有可运行进程的权重之和，也就是说进程的 CPU 时间分配的计算公式如下：
 
 $$
-quota_k = \frac{weight_k}{\sum_{i=0}^{n-1} weight_i} \times total\_quota
+quota_k = \frac{weight_k}{\sum_{i=0}^{n-1} weight_i} \times total\\_quota
 $$
 
 有了权重值，就可以通过把当前所有运行的任务的权重值相加，然后将某一个任务的权重值除以总权重值来得到该任务的 CPU 时间分配比例。比如，现在有两个进程 A 和 B，A 的 nice 值是 -5，B 的 nice 值是 5，那么 A 的权重值是 3121，B 的权重值是 335，总权重值是 3456。A 的 CPU 时间分配比例就是 3121 / 3456 = 0.902，B 的 CPU 时间分配比例就是 335 / 3456 = 0.097。也就是说，A 将获得大约 90% 的 CPU 时间，而 B 将获得大约 10% 的 CPU 时间。如果此时系统已经运行了 100ms，那么理论上 A 应该获得 90ms 的 CPU 时间，而 B 将获得 10ms 的 CPU 时间；然而实际情况可能是 A 获得了 50ms 的 CPU 时间，而 B 同样获得了 50ms 的 CPU 时间，这说明过去的 100ms 中，A 的 CPU 时间分配比例并没有达到预期的 90% 和 10%，所以当 CFS 要选择下一个任务来运行时，就要选择 A 而不是 B，这样才能保证 A 在接下来的运行中能获得更多的 CPU 时间，从而渐进式地调整从而达到预期的 CPU 时间分配比例。
@@ -251,13 +263,13 @@ $$
 在内核中，物理时间被称为 wall time，也可以称之为 runtime，vruntime 和 runtime 之间的关系是通过以下公式计算出来的：
 
 $$
-vruntime_i = vruntime_{i-1} + \frac{NICE\_0\_LOAD}{weight_i} \times (runtime_i - runtime_{i-1})
+vruntime_i = vruntime_{i-1} + \frac{NICE\\\_0\\\_LOAD}{weight_i} \times (runtime_i - runtime_{i-1})
 $$
 
 或者
 
 $$
-vruntime_i = \frac{NICE\_0\_LOAD}{weight_i} \times runtime_i
+vruntime_i = \frac{NICE\\_0\\_LOAD}{weight_i} \times runtime_i
 $$
 
 其中 NICE_0_LOAD 是内核中的一个宏，表示 nice 值为 0 时的权重值，也就是 1024。
@@ -335,7 +347,7 @@ static u64 __sched_period(unsigned long nr_running)
 引入 vruntime 之后，CFS 调度器就可以摒弃时间片 (timeslice) 的概念了，更准确地说，CFS 摒弃了固定时间片的概念，也就是说 CFS 并不会预先给每个任务分配一个固定的时间片，而是根据当前所有可运行的任务数量 n 来动态计算，平均分配给每一个任务 1/n 的 CPU 资源，这里的计算要加上任务的权重值。可通过如下公式动态计算每个任务的时间片：
 
 $$
-timeslice_k = \frac{weight_k}{\sum_{i=0}^{n-1} weight_i} \times sched\_latency
+timeslice_k = \frac{weight_k}{\sum_{i=0}^{n-1} weight_i} \times sched\\_latency
 $$
 
 其中，sched_latency 是 CFS 调度器的一个参数，表示调度器的调度延迟，也就是所有可运行的任务都至少运行一次所需的时间。计算一个任务在调度延迟内的时间片时，首先需要计算所有可运行任务的权重值之和，然后将该任务的权重值除以总权重值，得到该任务在调度延迟内的 CPU 时间分配比例，最后将这个比例乘以调度延迟就得到了该任务的时间片。
@@ -394,7 +406,7 @@ static u64 sched_slice(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
 ### runqueue
 
-CFS 调度器使用一个名为 ***runqueue (运行队列)*** 的数据结构来维护所有可运行的任务。每个 CPU 都有一个独立的 runqueue，runqueue 中包含了所有在该 CPU 上可运行的任务。CFS 调度器使用每个任务的 vruntime 作为 key 构建和维护一棵基于时序 (time-ordered) 的红黑树 (red-black tree)，红黑树的每个节点都是一个调度实体 (sched_entity)，表示一个可运行的任务。为什么选择红黑树呢？因为内核需要一个高效的数据结构来保存并操作所有的可运行任务，CFS 不仅要快速地从 runqueue 中找到下一个可调度的任务，还需要频繁地插入、更新和删除 runqueue 中的任务，因此红黑树是一个理想的选择，它是一种自平衡的二叉搜索树，其性质保证了调度器可以在 $O(\log_2 n)$ 的时间复杂度内查找、插入和删除任务。而 Linux 更进一步对 CFS 所使用的红黑树进行了优化，缓存了最小的 vruntime 节点，使得调度器取回最小 vruntime 的任务的时间复杂度降为 $O(1)$。
+CFS 调度器使用一个名为 ***runqueue (运行队列)*** 的数据结构来维护所有可运行的任务。每个 CPU 都有一个独立的 runqueue，runqueue 中包含了所有在该 CPU 上可运行的任务。CFS 调度器使用每个任务的 vruntime 作为 key 构建和维护一棵基于时序 (time-ordered) 的红黑树 (red-black tree)，红黑树的每个节点都是一个调度实体 (sched_entity)，表示一个可运行的任务。为什么选择红黑树呢？因为内核需要一个高效的数据结构来保存并操作所有的可运行任务，CFS 不仅要快速地从 runqueue 中找到下一个可调度的任务，还需要频繁地插入、更新和删除 runqueue 中的任务，因此红黑树是一个理想的选择，它是一种自平衡的二叉搜索树，其性质保证了调度器可以在 \\(O(\log_2 n)\\) 的时间复杂度内查找、插入和删除任务。而 Linux 更进一步对 CFS 所使用的红黑树进行了优化，缓存了最小的 vruntime 节点，使得调度器取回最小 vruntime 的任务的时间复杂度降为 \\(O(1)\\)。
 
 红黑树在很多编程语言中有着广泛的应用：
  - 在 C++ STL 中，红黑树被用作 `std::map` 和 `std::set` 的底层实现。
@@ -463,7 +475,7 @@ struct rb_root_cached {
 };
 ```
 
-`rb_root` 是红黑树的根节点，`rb_leftmost` 是红黑树的最左子节点，这是一个缓存数据，用来加速查找最小 vruntime 的任务，使得 CFS 查找最小 vruntime 的任务的时间复杂度从 $O(\log_2 n)$ 下降到 $O(1)$ 的时间复杂度。CFS 调度器会在每次调度时都调整这棵红黑树，插入、删除和更新调度实体 (sched_entity) 的 vruntime，然后更新 `rb_leftmost` 指针。
+`rb_root` 是红黑树的根节点，`rb_leftmost` 是红黑树的最左子节点，这是一个缓存数据，用来加速查找最小 vruntime 的任务，使得 CFS 查找最小 vruntime 的任务的时间复杂度从 \\(O(\log_2 n)\\) 下降到 \\(O(1)\\) 的时间复杂度。CFS 调度器会在每次调度时都调整这棵红黑树，插入、删除和更新调度实体 (sched_entity) 的 vruntime，然后更新 `rb_leftmost` 指针。
 
 ### 调度原理
 
@@ -478,7 +490,7 @@ struct rb_root_cached {
 
 #### 调度节拍
 
-***时钟中断 (timer interrupt)*** 是一种由硬件提供的、周期性触发的硬中断，操作系统可以利用时钟中断来做很多事情，比如更新系统时间、刷新屏幕、数据落盘等。操作系统都有一个系统定时器，由硬件 (可编程定时芯片) 提供支持，系统定时器以某种频率周期性发出电子脉冲，触发硬件中断，这就是时钟中断。系统定时器的频率是可编程的，称之为***节拍率*** (tick rate)，两次时钟中断的时间间隔则被称之为***节拍*** (tick)， $tick=\frac{1}{tick\_rate}$秒。
+***时钟中断 (timer interrupt)*** 是一种由硬件提供的、周期性触发的硬中断，操作系统可以利用时钟中断来做很多事情，比如更新系统时间、刷新屏幕、数据落盘等。操作系统都有一个系统定时器，由硬件 (可编程定时芯片) 提供支持，系统定时器以某种频率周期性发出电子脉冲，触发硬件中断，这就是时钟中断。系统定时器的频率是可编程的，称之为***节拍率*** (tick rate)，两次时钟中断的时间间隔则被称之为***节拍*** (tick)， \\(tick=\frac{1}{tick\\_rate}\\)秒。
 
 系统定时器的节拍率的单位是 HZ，表示每秒钟触发的时钟中断次数。节拍率是通过静态预处理定义的，内核启动的时候会按照 HZ 值对硬件进行设置，HZ 默认值在不同的 CPU 架构和内核版本中也是不一样的。以 x86(_64) 架构为例，内核版本 2.4.x 的默认值是 100，tick 就是 10ms，2.6.0 之后提高到 1000，tick 变成了 1ms，2.6.13 之后默认值又降为 250，tick 就是 4ms，同时也支持了手动配置这个参数[^12]。内核有一个全局的 jiffies 计数器，用记录自系统启动以来的总节拍数，初始值是 0，此后每次发生时钟中断时就会加 1。因为一秒钟内时钟中断的次数等于 HZ，因此 jiffies 每秒钟的增值就是 HZ。
 
@@ -679,7 +691,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 ```
 #### 调度入口
 
-需要注意的是，`resched_curr()` 函数只是给当前任务打上一个 `TIF_NEED_RESCHED` 标记，**并不会立即抢占当前任务**，而是在进程从中断或者系统调用返回到用户态空间时，检查当前进程的调度标志，如果标记被设置了，则会调用 `schedule()` 函数进行抢占，重新选择 vruntime 最小的任务来运行。`schedule()` 是内核调度器的入口，内核中很多地方都会有这个函数的埋点，所以在内核运行期间，调度器代码一直在执行，这个函数代码精简后如下[^20] [^21]：
+需要注意的是，`resched_curr()` 函数只是给当前任务打上一个 `TIF_NEED_RESCHED` 标记，**并不会立即抢占当前任务**，而是在进程从中断或者系统调用返回到用户态空间时，检查当前进程的调度标志，如果标记被设置了，则会调用 `schedule()` 函数进行抢占，重新选择 vruntime 最小的任务来运行。`schedule()` 是内核调度器的入口，内核中很多地方都会有这个函数的埋点，所以在内核运行期间，调度器代码一直在执行，这个函数的代码精简后如下[^20] [^21]：
 
 ```c
 asmlinkage __visible void __sched schedule(void)
@@ -689,7 +701,7 @@ asmlinkage __visible void __sched schedule(void)
 	sched_submit_work(tsk);
 	do {
 		preempt_disable(); // 关闭内核抢占
-		__schedule(SM_NONE); // 执行具体的调度工作的
+		__schedule(SM_NONE); // 执行具体的调度工作
 		sched_preempt_enable_no_resched(); // 重新开启内核抢占
 	} while (need_resched()); // 检查是否有 TIF_NEED_RESCHED 标志
 	sched_update_worker(tsk);
@@ -1205,23 +1217,23 @@ EEVDF 调度器的理论基础是一篇 1995 年发表的论文《Earliest Eligi
 
 ### 理论基础
 
-在深入内核关于 EEVDF 的代码实现之前，我们需要先了解论文中关于 EEVDF 的一些概念定义和设定。首先 EEVDF 是论文提出的一种按比例份额分配 CPU 时间资源的新算法，CPU 资源分配以时间量子 (time quantum)为单位，大小设定为 $q$，所谓的 time quantum 其实也就是 time slice，时间片的意思。论文中规定了如果一个任务想要获取调度资源，则需发出调度请求并指定其所需的运行时间。调度请求由任务自己发出，或者由调度器代表任务发出，内核会按顺序处理所有的调度请求。
+在深入内核关于 EEVDF 的代码实现之前，我们需要先了解论文中关于 EEVDF 的一些概念定义和设定。首先 EEVDF 是论文提出的一种按比例份额分配 CPU 时间资源的新算法，CPU 资源分配以时间量子 (time quantum)为单位，大小设定为 \\(q\\)，所谓的 time quantum 其实也就是 time slice，时间片的意思。论文中规定了如果一个任务想要获取调度资源，则需发出调度请求并指定其所需的运行时间。调度请求由任务自己发出，或者由调度器代表任务发出，内核会按顺序处理所有的调度请求。
 
 #### 时间份额
 
-我们首先定义任务 $i$ 在时间点 $t$ 的 CPU 时间份额是 $f_i(t)$，$w_i$ 代表任务 $i$ 的权重，$A(t)$ 代表在时间点 $t$ 可运行的任务集合，可得到如下方程：
+我们首先定义任务 \\(i\\) 在时间点 \\(t\\) 的 CPU 时间份额是 \\(f_i(t)\\)，\\(w_i\\) 代表任务 \\(i\\) 的权重，\\(A(t)\\) 代表在时间点 \\(t\\) 可运行的任务集合，可得到如下方程：
 
 $$
 f_i(t) = \frac{w_i}{\sum_{j\in A(t)} w_j} \qquad (1)
 $$
 
-理想状态下，如果任务的时间份额在 $[t, t + \Delta t]$ 时间段内维持不变，那么任务 $i$ 在此期间应得的 CPU 时间就是 $f_i(t) \Delta t$。而在现实世界中，$f_i(t)$ 肯定会随着时间的推移而变化，那么我们定义任务 $i$ 在时间段 $[t0, t1]$ 内应得的 CPU 时间为 $S_i(t0, t1)$，则有积分方程如下：
+理想状态下，如果任务的时间份额在 \\([t, t + \Delta t]\\) 时间段内维持不变，那么任务 \(i\) 在此期间应得的 CPU 时间就是 \\(f_i(t) \Delta t\\)。而在现实世界中，\\(f_i(t)\\) 肯定会随着时间的推移而变化，那么我们定义任务 \\(i\\) 在时间段 \\([t0, t1]\\) 内应得的 CPU 时间为 \\(S_i(t0, t1)\\)，则有积分方程如下：
 
 $$
 S_i(t0, t1) = \int_{t0}^{t1} f_i(\tau) d\tau \qquad (2)
 $$
 
-系统的理想调度调度状态是时间量子 $q$ 无限趋近于 0。然而，我们知道现实世界中并没有无限小的时间量子，我们的世界是量子化的，任何物理量都必定有一个最小值。此外，前面介绍 CFS 的时候也提到过，时间片和调度开销是成反比的，时间片越小，调度 (上下文切换) 的开销就越大。因此无限小的时间片也意味着大部分的 CPU 时间都会花在上下文切换上，进程本身的运行时间就会趋近于 0，这显然不是一个可用的调度方案。时间片过小还有另一个问题是可能会导致一个任务被频繁地抢占 (打断)，而某些任务是不允许被打断的，比如一些要求严格时序的网络包发送任务，网络包必须严格按照顺序发送，所以第一个包发送完毕之前绝对不能先发送第二个包，这个时候频繁抢占第一个包的发送任务是没有意义的，因为第一个包没发送出去之前所有其他的包都不能发送出去。
+系统的理想调度调度状态是时间量子 \\(q\\) 无限趋近于 0。然而，我们知道现实世界中并没有无限小的时间量子，我们的世界是量子化的，任何物理量都必定有一个最小值。此外，前面介绍 CFS 的时候也提到过，时间片和调度开销是成反比的，时间片越小，调度 (上下文切换) 的开销就越大。因此无限小的时间片也意味着大部分的 CPU 时间都会花在上下文切换上，进程本身的运行时间就会趋近于 0，这显然不是一个可用的调度方案。时间片过小还有另一个问题是可能会导致一个任务被频繁地抢占 (打断)，而某些任务是不允许被打断的，比如一些要求严格时序的网络包发送任务，网络包必须严格按照顺序发送，所以第一个包发送完毕之前绝对不能先发送第二个包，这个时候频繁抢占第一个包的发送任务是没有意义的，因为第一个包没发送出去之前所有其他的包都不能发送出去。
 
 #### Lag
 
@@ -1231,13 +1243,13 @@ $$
 lag_i(t) = S_i(t_0^i, t) - s_i(t_0^i, t) \qquad (3)
 $$
 
-其中 $lag_i(t)$ 代表 任务 $i$ 在时间点 $t$ 的 lag 值，$t_0^i$ 是任务就绪 (状态变成可运行) 的时间点，$s_i(t_0^i, t)$ 代表任务 $i$ 在时间段 $[t_0^i, t]$ 内实际已得的 CPU 时间，$S_i(t_0^i, t)$ 代表任务 $i$ 在时间段 $[t_0^i, t]$ 内应得的 CPU 时间。
+其中 \\(lag_i(t)\\) 代表 任务 \\(i\\) 在时间点 \\(t\\) 的 lag 值，\\(t_0^i\\) 是任务就绪 (状态变成可运行) 的时间点，\\(s_i(t_0^i, t)\\) 代表任务 \\(i\\) 在时间段 \\([t_0^i, t]\\) 内实际已得的 CPU 时间，\\(S_i(t_0^i, t)\\) 代表任务 \\(i\\) 在时间段 \\([t_0^i, t]\\) 内应得的 CPU 时间。
 
 EEVDF 本质还是一个公平性调度器，追求公平地为每个进程分配 CPU 时间，实现手段无非也还是对多用了 CPU 时间的进程进程惩罚，对少用了 CPU 时间的进程进行补偿。内核就是通过 lag 来实现这种奖惩机制，lag 代表的是理论上进程应得的 CPU 时间和实际已消耗的 CPU 时间之间的差值，也就是系统"亏欠"一个进程的 CPU 时间。
 
 #### 截止时间
 
-熟悉实时操作系统的的读者应该对***截止时间 (deadline)*** 这个概念比较熟悉，截止时间是指一个任务获得其请求的所有资源的最晚时间点。以周期性调度为例，调度周期假设为 $T$，任务在每个调度周期里请求的 CPU 时间是 $r$，在实时操作系统中，实时调度器要求任务在 $T$ 周期内必须获得不少于 $r$ 的 CPU 时间，所以该任务在调度周期内的时间份额就是 $f = \frac{r}{T}$。那么反过来说，如果我们先设定一个任务的时间份额是 $f$，任务在时间点 $t$ 发出调度请求，对于实时操作系统来说，任务在下一个 $T$ 到来之前必须要要完成本次运行，所以任务的截止时间就是 $t + T$，而我们又已知 $f = \frac{r}{T}$，所以可得截止时间为 $t + \frac{r}{f}$。
+熟悉实时操作系统的的读者应该对***截止时间 (deadline)*** 这个概念比较熟悉，截止时间是指一个任务获得其请求的所有资源的最晚时间点。以周期性调度为例，调度周期假设为 \\(T\\)，任务在每个调度周期里请求的 CPU 时间是 \\(r\\)，在实时操作系统中，实时调度器要求任务在 \\(T\\) 周期内必须获得不少于 \\(r\\) 的 CPU 时间，所以该任务在调度周期内的时间份额就是 \\(f = \frac{r}{T}\\)。那么反过来说，如果我们先设定一个任务的时间份额是 \\(f\\)，任务在时间点 \\(t\\) 发出调度请求，对于实时操作系统来说，任务在下一个 \\(T\\) 到来之前必须要要完成本次运行，所以任务的截止时间就是 \\(t + T\\)，而我们又已知 \\(f = \frac{r}{T}\\)，所以可得截止时间为 \\(t + \frac{r}{f}\\)。
 
 #### 虚拟时间
 
@@ -1247,18 +1259,18 @@ $$
 S_i(t_1, t_2) = w_i \times \int_{t_1}^{t_2} \frac{1}{\sum_{j\in A(\tau)} w_j} d\tau \qquad (4)
 $$
 
-其中令系统的虚拟时间为 $V(t)$，其定义为：
+其中令系统的虚拟时间为 \\(V(t)\\)，其定义为：
 
 $$
 V(t) = \int_{0}^{t} \frac{1}{\sum_{j\in A(\tau)} w_j} d\tau \qquad (5)
 $$
 
-也就是说系统的虚拟时间是通过所有可运行任务的权重之和的倒数来定义的，比如一个 runqueue 里现在有两个任务，其权重分别为 $w_1$ 和 $w_2$，那么系统的虚拟时间流速就是 $\frac{1}{w_1 + w_2}$，也就是每一个物理时间单位对应的虚拟时间单位是 $w_1 + w_2$。比如 $w_i = 2$ 和 $w_j = 3$，那么系统的虚拟时间流速就是 $\frac{1}{2 + 3} = \frac{1}{5} = 0.2$，也就是说每经过 5 个物理时间单位，系统的虚拟时间才会增加 1 个单位。
+也就是说系统的虚拟时间是通过所有可运行任务的权重之和的倒数来定义的，比如一个 runqueue 里现在有两个任务，其权重分别为 \\(w_1\\) 和 \\(w_2\\)，那么系统的虚拟时间流速就是 \\(\frac{1}{w_1 + w_2}\\)，也就是每一个物理时间单位对应的虚拟时间单位是 \\(w_1 + w_2\\)。比如 \\(w_i = 2\\) 和 \\(w_j = 3\\)，那么系统的虚拟时间流速就是 \\(\frac{1}{2 + 3} = \frac{1}{5} = 0.2\\)，也就是说每经过 5 个物理时间单位，系统的虚拟时间才会增加 1 个单位。
 
 再结合方程 (4) 和 (5)，根据微积分第二基本定理[^35]：
 
 $$
-F(x) = \int_{0}^{x} f(t)dt \\
+F(x) = \int_{0}^{x} f(t)dt \\\
 \int_{a}^{b} f(t)dt = F(b) - F(a)
 $$
 
@@ -1268,56 +1280,56 @@ $$
 S_i(t_1, t_2) = w_i \times (V(t_2) - V(t_1)) \qquad (6)
 $$
 
-这个方程表示权重为 $w_i$ 的任务 $i$ 在时间段 $[t_1, t_2]$ 内应得的 CPU 虚拟时间。在 EEVDF 中，基本上所有的关于时间的决策都是基于虚拟时间来做的，也就是说从现在开始我们可以将物理时间的概念抛弃掉了，所有的时间计算都可以使用虚拟时间来代替。
+这个方程表示权重为 \\(w_i\\) 的任务 \\(i\\) 在时间段 \\([t_1, t_2]\\) 内应得的 CPU 虚拟时间。在 EEVDF 中，基本上所有的关于时间的决策都是基于虚拟时间来做的，也就是说从现在开始我们可以将物理时间的概念抛弃掉了，所有的时间计算都可以使用虚拟时间来代替。
 
 #### Eligible Time
 
-这是这篇论文独创的一个新概念，表示任务"有资格"运行的时间点。论文里给 ***eligible time*** 的定义是：任务 $i$ 从变成就绪 (可运行) 状态的时间点 $t_0^i$ 开始算起，在发起新的调度请求之前，其理论应得的 CPU 时间长度正好等于实际已得的 CPU 时间长度的时间点就是 eligible time。通过数学方程来描述就是 $S_i(t_0^i, e) = s_i(t_0^i, t)$，其中 $e$ 表示 eligible time，$t$ 表示发起新调度请求的时间点。前面介绍的 lag 值和 eligible time 这两个概念是密切相关的，lag 值用来判定一个任务是否 eligible，也就是是否有资格运行，如果一个任务的 lag 值为正，那么它就是 eligible 的，反之则不 eligible。当 lag 值为正，说明系统"亏欠"了这个任务一定的 CPU 时间，那么该任务立刻就可以发起调度请求要求调度器执行它，而当 lag 值为负，说明该任务已经"超额"使用了 CPU 时间，那么该任务就必须至少等到 eligible time 这个时间点才能发起新的调度请求。通过这种方式，EEVDF 调度器就可以给"亏欠的"任务提速而给"超额的"任务降速，从而实现对任务的奖惩，保证公平性调度。
+这是这篇论文独创的一个新概念，表示任务"有资格"运行的时间点。论文里给 ***eligible time*** 的定义是：任务 \\(i\\) 从变成就绪 (可运行) 状态的时间点 \\(t_0^i\\) 开始算起，在发起新的调度请求之前，其理论应得的 CPU 时间长度正好等于实际已得的 CPU 时间长度的时间点就是 eligible time。通过数学方程来描述就是 \\(S_i(t_0^i, e) = s_i(t_0^i, t)\\)，其中 \\(e\\) 表示 eligible time，\\(t\\) 表示发起新调度请求的时间点。前面介绍的 lag 值和 eligible time 这两个概念是密切相关的，lag 值用来判定一个任务是否 eligible，也就是是否有资格运行，如果一个任务的 lag 值为正，那么它就是 eligible 的，反之则不 eligible。当 lag 值为正，说明系统"亏欠"了这个任务一定的 CPU 时间，那么该任务立刻就可以发起调度请求要求调度器执行它，而当 lag 值为负，说明该任务已经"超额"使用了 CPU 时间，那么该任务就必须至少等到 eligible time 这个时间点才能发起新的调度请求。通过这种方式，EEVDF 调度器就可以给"亏欠的"任务提速而给"超额的"任务降速，从而实现对任务的奖惩，保证公平性调度。
 
-通过对 $S_i(t_0^i, e) = s_i(t_0^i, t)$ 应用方程 (6) 我们可以推导出 eligible time 的计算公式：
+通过对 \\(S_i(t_0^i, e) = s_i(t_0^i, t)\\) 应用方程 (6) 我们可以推导出 eligible time 的计算公式：
 
 $$
 V(e) = V(t_0^i) + \frac{s_i(t_0^i, t)}{w_i} \qquad (7)
 $$
 
-其中 $V(t_0^i)$ 表示任务 $i$ 就绪时的虚拟时间，$s_i(t_0^i, t)$ 表示任务 $i$ 在时间段 $[t_0^i, t]$ 内实际已得的 CPU 时间，$w_i$ 是任务 $i$ 的权重。这里的 $\frac{s_i(t_0^i, t)}{w_i}$ 之所以要除以权重值，就是为了将物理时间转换为虚拟时间，这是公平调度的核心思想之一。因为不同任务的权重不同，所以它们的虚拟时间流速也不同，权重越大，虚拟时间流速就越快，反之则越慢。通过除以权重值，我们就可以将物理时间转换为虚拟时间。
+其中 \\(V(t_0^i)\\) 表示任务 \\(i\\) 就绪时的虚拟时间，\\(s_i(t_0^i, t)\\) 表示任务 \\(i\\) 在时间段 \\([t_0^i, t]\\) 内实际已得的 CPU 时间，\\(w_i\\) 是任务 \\(i\\) 的权重。这里的 \\(\frac{s_i(t_0^i, t)}{w_i}\\) 之所以要除以权重值，就是为了将物理时间转换为虚拟时间，这是公平调度的核心思想之一。因为不同任务的权重不同，所以它们的虚拟时间流速也不同，权重越大，虚拟时间流速就越快，反之则越慢。通过除以权重值，我们就可以将物理时间转换为虚拟时间。
 
 #### Virtual Deadline
 
-这是另一个 EEVDF 核心的概念，***virtual deadline*** 表示虚拟截止时间，我们定义其为 $V_d$，eligible time 为 $V_e$，$V_d$ 必须满足以下约束条件：任务 $i$ 发起调度请求时期望的 CPU 时间 $r$ 等于 $[V_e, V_d]$ 累加 CPU 时间，也即是 $S_i(e, d) = r$，其中 $r$ 是任务发起调度请求时期望的 CPU 时间长度。通过对这个公式应用方程 (6) 可得：
+这是另一个 EEVDF 核心的概念，***virtual deadline*** 表示虚拟截止时间，我们定义其为 \\(V_d\\)，eligible time 为 \\(V_e\\)，\\(V_d\\) 必须满足以下约束条件：任务 \\(i\\) 发起调度请求时期望的 CPU 时间 \\(r\\) 等于 \\([V_e, V_d]\\) 累加 CPU 时间，也即是 \\(S_i(e, d) = r\\)，其中 \\(r\\) 是任务发起调度请求时期望的 CPU 时间长度。通过对这个公式应用方程 (6) 可得：
 
 $$
 V(d) = V(e) + \frac{r}{w_i} \qquad (8)
 $$
 
-其中 $V(d)$ 就是所谓的 virtual deadline，它的值就是任务的 eligible time 再加上任务的加权 CPU 时间片，这是一个类似于实时操作系统 deadline 概念的东西，但由于 EEVDF 并不是一个实时调度器，而且 Linux 也不是一个实时操作系统而是一个分时操作系统，所以内核不会真的强制要求任务一定要在 virtual deadline 之前完成，而只是借用了实时调度器的 deadline 概念。实时调度并不等同于性能高，实时系统最大的优势是调度的确定性：调度器能在极其确定的时间内处理一次中断，这是非实时系统做不到的，但是实时系统的性能和吞吐量却未必比非实时系统高。另一方面，实时系统调度器的劣势是适用性较差，对于实时任务 (比如音视频编解码) 之外的任务类型的支持比较差，比如交互型任务和批处理任务，因为这类任务的耗时很难预测，因此无法在的时间内给出确定性的响应，灵活性不够。EEVDF 的设计目标是成为一个通用的公平性调度器，同时提供较强的时效性保证。
+其中 \\(V(d)\\) 就是所谓的 virtual deadline，它的值就是任务的 eligible time 再加上任务的加权 CPU 时间片，这是一个类似于实时操作系统 deadline 概念的东西，但由于 EEVDF 并不是一个实时调度器，而且 Linux 也不是一个实时操作系统而是一个分时操作系统，所以内核不会真的强制要求任务一定要在 virtual deadline 之前完成，而只是借用了实时调度器的 deadline 概念。实时调度并不等同于性能高，实时系统最大的优势是调度的确定性：调度器能在极其确定的时间内处理一次中断，这是非实时系统做不到的，但是实时系统的性能和吞吐量却未必比非实时系统高。另一方面，实时系统调度器的劣势是适用性较差，对于实时任务 (比如音视频编解码) 之外的任务类型的支持比较差，比如交互型任务和批处理任务，因为这类任务的耗时很难预测，因此无法在的时间内给出确定性的响应，灵活性不够。EEVDF 的设计目标是成为一个通用的公平性调度器，同时提供较强的时效性保证。
 
 ### 内核实现
 
 #### Lag
 
-内核中 lag 的计算公式是 $lag_i = S - s_i$，其中 $S$ 是理论上进程应得的 CPU 时间，$s_i$ 是进程实际已消耗的 CPU 时间，$w_i$ 是进程的权重，$V$ 是系统的总虚拟时间，$v_i$ 是进程的虚拟时间。通过前面的内容我们知道 $v_i = \frac{NICE\_0\_LOAD}{w_i} \times s_i$ 和 $V = \frac{NICE\_0\_LOAD}{w_i} \times S$，因此 lag 的计算公式可以进一步推演为 $lag_i = S - s_i = w_i \times (V - v_i)$，$NICE\_0\_LOAD$ 是一个常数 1024，所以在公式中隐去。
+内核中 lag 的计算公式是 \\(lag_i = S - s_i\\)，其中 \\(S\\) 是理论上进程应得的 CPU 时间，\\(s_i\\) 是进程实际已消耗的 CPU 时间，\\(w_i\\) 是进程的权重，\\(V\\) 是系统的总虚拟时间，\\(v_i\\) 是进程的虚拟时间。通过前面的内容我们知道 \\(v_i = \frac{NICE\\_0\\_LOAD}{w_i} \times s_i\\) 和 \\(V = \frac{NICE\\_0\\_LOAD}{w_i} \times S\\)，因此 lag 的计算公式可以进一步推演为 \\(lag_i = S - s_i = w_i \times (V - v_i)\\)，\\(NICE\\_0\\_LOAD\\) 是一个常数 1024，所以在公式中隐去。
 
-每一个进程的 lag 可正可负，正值表示进程被"亏欠"的 CPU 时间，负值表示进程"超额"使用的 CPU 时间。而要保证公平性调度，那么所有进程的 lag 之和必定是 0，也就是 $\sum_{i=0}^{n-1} lag_i = 0$，其中 $n$ 是系统中所有进程的数量。所以可以继续推导：
+每一个进程的 lag 可正可负，正值表示进程被"亏欠"的 CPU 时间，负值表示进程"超额"使用的 CPU 时间。而要保证公平性调度，那么所有进程的 lag 之和必定是 0，也就是 \\(\sum_{i=0}^{n-1} lag_i = 0\\)，其中 \\(n\\) 是系统中所有进程的数量。所以可以继续推导：
 
 $$
-\sum_{i=0}^{n-1} lag_i = \sum_{i=0}^{n-1} w_i \times (V - v_i) = \sum_{i=0}^{n-1} w_i \times V - \sum_{i=0}^{n-1} w_i \times v_i = 0 \\
-\sum_{i=0}^{n-1} w_i \times V = \sum_{i=0}^{n-1} w_i \times v_i \\
-V = \frac{\sum_{i=0}^{n-1} w_i \times v_i}{\sum_{i=0}^{n-1} w_i} \\
+\sum_{i=0}^{n-1} lag_i = \sum_{i=0}^{n-1} w_i \times (V - v_i) = \sum_{i=0}^{n-1} w_i \times V - \sum_{i=0}^{n-1} w_i \times v_i = 0 \\\
+\sum_{i=0}^{n-1} w_i \times V = \sum_{i=0}^{n-1} w_i \times v_i \\\
+V = \frac{\sum_{i=0}^{n-1} w_i \times v_i}{\sum_{i=0}^{n-1} w_i} \\\
 V = \frac{\sum_{i=0}^{n-1} w_i \times v_i}{W}
 $$
 
-其中 $W = \sum_{i=0}^{n-1} w_i$，也就是说 $V$ 是所有进程的虚拟时间的加权平均值。由于 $v_i$ 是一个单调递增的虚拟时间，即便它的类型是 u64 (无符号 64 位整数)，代码中的 $v_i \times w_i$ 也可能会溢出，为了避免这个问题，内核在计算 $v_i \times w_i$ 时会先将 $v_i$ 减去一定的值，也就是 $v_i = (v_i - v0) + v0$，那么 $V$ 的计算公式就变成了这样：
+其中 \\(W = \sum_{i=0}^{n-1} w_i\\)，也就是说 \\(V\\) 是所有进程的虚拟时间的加权平均值。由于 \\(v_i\\) 是一个单调递增的虚拟时间，即便它的类型是 u64 (无符号 64 位整数)，代码中的 \\(v_i \times w_i\\) 也可能会溢出，为了避免这个问题，内核在计算 \\(v_i \times w_i\\) 时会先将 \\(v_i\\) 减去一定的值，也就是 \\(v_i = (v_i - v0) + v0\\)，那么 \\(V\\) 的计算公式就变成了这样：
 
 $$
-V = \frac{\sum_{i=0}^{n-1} ((v_i - v0) + v0) \times w_i}{W} = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i + \sum_{i=0}^{n-1} v0 \times w_i}{W} \\
-= \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i + v0 \times \sum_{i=0}^{n-1} w_i}{W} = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i + v0 \times W}{W} \\
+V = \frac{\sum_{i=0}^{n-1} ((v_i - v0) + v0) \times w_i}{W} = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i + \sum_{i=0}^{n-1} v0 \times w_i}{W} \\\
+= \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i + v0 \times \sum_{i=0}^{n-1} w_i}{W} = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i + v0 \times W}{W} \\\
 = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i}{W} + v0
 $$
 
-其中 $v0$ 的取值是 `cfs_rq->min_vruntime`，也就是当前 CFS runqueue 中的最小 vruntime。
+其中 \\(v0\\) 的取值是 `cfs_rq->min_vruntime`，也就是当前 CFS runqueue 中的最小 vruntime。
 
-内核中计算 lag 的核心函数是 `avg_vruntime()`，它负责计算上面方程中的 $V$，`cfs_rq->avg_vruntime` 就是方程中的 $\sum_{i-0}^{n-1} (v_i - v0) \times w_i$，`cfs_rq->avg_load` 则是当前 CFS runqueue 中所有可运行任务的权重之和：W = $\sum_{i=0}^{n-1} w_i$，源码如下[^36]：
+内核中计算 lag 的核心函数是 `avg_vruntime()`，它负责计算上面方程中的 \\(V\\)，`cfs_rq->avg_vruntime` 就是方程中的 \\(\sum_{i-0}^{n-1} (v_i - v0) \times w_i\\)，`cfs_rq->avg_load` 则是当前 CFS runqueue 中所有可运行任务的权重之和：\\(W = \sum_{i=0}^{n-1} w_i\\)，源码如下[^36]：
 
 ```c
 u64 avg_vruntime(struct cfs_rq *cfs_rq)
@@ -1378,13 +1390,13 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 
 论文定义的 virtual deadline 是任务的 eligible time 加上任务请求的 CPU 时间片长度除以任务权重。而内核的实现时，将任务的 vruntime 作为 eligible time，然后加上任务请求的 CPU 时间片长度除以任务权重，再乘上一个常数系数 1024。
 
-本章节开头就陈述过，引入 EEVDF 调度器的最大目的是为了弥补 CFS 调度器在调度延迟敏感型任务时的不足，通过更早、更频繁地调度这一类任务来实现。而 virtual deadline 正是达成这个目标的核心，EEVDF 调度器复用了 CFS 调度器的红黑树数据结构来存储所有的调度实体，并对其进行了改进，称之为增强红黑树。相较于 CFS，EEVDF 的红黑树中不再是以 vruntime 为 key 来排序，而是换成了 virtual deadline，也就是从 `se->vruntime` 改成了 `se->deadline`。CFS 调度器支持通过 `nice(2)` 系统调用为进程设置 nice 值从而调整任务权重，EEVDF 调度器继承了这个权重值，同时移除了 CFS 的其他启发式的配置项[^38]。除此之外，EEVDF 还引了一个新的配置值 —— `sched_runtime`，允许用户通过 [`sched_setattr(2)`](https://man7.org/linux/man-pages/man2/sched_setattr.2.html) 配置进程的请求 CPU 时间片长度，也就是方程 (8) 里的 $r$，其实这个字段之前就有，但是在此之前这个字段是用于内核中的实时 (RT) 调度类的，后来将其拓展到 EEVDF 调度器中使用。
+本章节开头就陈述过，引入 EEVDF 调度器的最大目的是为了弥补 CFS 调度器在调度延迟敏感型任务时的不足，通过更早、更频繁地调度这一类任务来实现。而 virtual deadline 正是达成这个目标的核心，EEVDF 调度器复用了 CFS 调度器的红黑树数据结构来存储所有的调度实体，并对其进行了改进，称之为增强红黑树。相较于 CFS，EEVDF 的红黑树中不再是以 vruntime 为 key 来排序，而是换成了 virtual deadline，也就是从 `se->vruntime` 改成了 `se->deadline`。CFS 调度器支持通过 `nice(2)` 系统调用为进程设置 nice 值从而调整任务权重，EEVDF 调度器继承了这个权重值，同时移除了 CFS 的其他启发式的配置项[^38]。除此之外，EEVDF 还引了一个新的配置值 —— `sched_runtime`，允许用户通过 [`sched_setattr(2)`](https://man7.org/linux/man-pages/man2/sched_setattr.2.html) 配置进程的请求 CPU 时间片长度，也就是方程 (8) 里的 \\(r\\)，其实这个字段之前就有，但是在此之前这个字段是用于内核中的实时 (RT) 调度类的，后来将其拓展到 EEVDF 调度器中使用。
 
 通过调整 `nice` 和 `sched_runtime` 这两个参数，可以分别增加任务的权重和减少任务的时间片长度，如此一来 virtual deadline 也会随之变小，而 EEVDF 调度任务的时候会优先从红黑树中挑选出 virtual deadline 最小的调度实体来运行，这样就可以保证延迟敏感型任务会被更早地调度运行。此外，EEVDF 还会用 virtual deadline 更小的任务来抢占正在运行中的 virtual deadline 更大的任务，从而进一步降低延迟敏感型任务的延迟时间。有人可能要问了，虽然这种调度算法可以使得延迟敏感型的任务更早地被执行，但是每次的 CPU 时间片也变少了，也就是任务被打断(抢占)的频率也更高了，这样似乎反而会导致任务的延迟更大？内核团队给出的答案是：延迟敏感型的任务通常来讲并不需要太多的 CPU 时间，所以单次时间片变小对这类任务的影响并不算大，调度时机才是最重要的，也就是说这类任务最迫切需要的是尽早被放到 CPU 上去运行。举个例子，假设有一个性能敏感的任务被创建了，整个任务只需要 1ms 就可以执行完，但是由于 CFS 调度器的公平性调度特性，这个任务可能需要等到 10ms 之后才能被调度运行，那么延迟至少就要 10ms。而如果使用 EEVDF 调度器，用户则可以设置 `sched_runtime` 为 1ms，那么该任务的 virtual deadline 值就会非常小，EEVDF 调度器会优先调度这个任务，即便给它分配的 CPU 时间片只有 1ms，但由于该任务的总耗时也就 1ms，所以第一次调度就可以完成任务的执行，延迟也就只有 1ms。
 
 ### 调度原理
 
-EEVDF 调度器的核心策略就是挑选出 virtual deadline 最小的调度实体来运行。宏观层面来看，这个过程和 CFS 调度器的挑选 vruntime 最小的调度实体来运行是类似的，但是多了一步 lag 计算。先来回顾一下 lag 的计算公式：$lag_i = S - s_i = w_i \times (V - v_i)$，又因为 eligible 必须符合 $lag_i \geq 0$，可得 $V \geq v_i$，而 $V = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i}{W} + v0$，所以可以推导出 $\sum_{i=0}^{n-1} (v_i - v0) \times w_i \geq (v_i -v0) \times \sum_{i=0}^{n-1} w_i$，根据上文可知是 `cfs_rq->avg_vruntime` >= (`se->vruntime` - `cfs_rq->min_vruntime`) * `cfs_rq->avg_load`，对应的内核源码是 `vruntime_eligible()` 函数，源码如下[^39]：
+EEVDF 调度器的核心策略就是挑选出 virtual deadline 最小的调度实体来运行。宏观层面来看，这个过程和 CFS 调度器的挑选 vruntime 最小的调度实体来运行是类似的，但是多了一步 lag 计算。先来回顾一下 lag 的计算公式：\\(lag_i = S - s_i = w_i \times (V - v_i)\\)，进程 \\(i\\) eligible 必须满足 \\(lag_i \geq 0\\)，可得 \\(V \geq v_i\\)，而 \\(V = \frac{\sum_{i=0}^{n-1} (v_i - v0) \times w_i}{W} + v0\\)，所以可以推导出 \\(\sum_{i=0}^{n-1} (v_i - v0) \times w_i \geq (v_i -v0) \times \sum_{i=0}^{n-1} w_i\\)，根据上文可知是 `cfs_rq->avg_vruntime` >= (`se->vruntime` - `cfs_rq->min_vruntime`) * `cfs_rq->avg_load`，对应的内核源码是 `vruntime_eligible()` 函数，源码如下[^39]：
 
 ```c
 static int vruntime_eligible(struct cfs_rq *cfs_rq, u64 vruntime)
@@ -1484,7 +1496,286 @@ found:
 
 ## 调度起点
 
-// TODO：解读内核 `cpu_startup_entry()` 函数，分析内核启动时的调度起点，也就是调度器的初始化过程和后续的运行。
+内核从启动之初就会调度任务，所以调度器的代码可以说是贯穿了整个内核的生命周期。接下来我们来看看内核是如何启动并开始执行调度器代码的。
+
+内核启动时的入口是 `start_kernel()` 函数，其中会完成各式各样的初始化工作，比如 CPU 的初始化、内存管理的初始化等，当然也包括调度器的初始化，通过 `sched_init()` 函数来完成，因为系统启动之后可能很快就有系统中断发生，我们前面已经说过，触发调度的一个重要的时机之一就是当从中断返回的时候，所以如果调度器没有在此之前没有准备好，则中断处理就会有问题。`start_kernel()` 最后调用 `rest_init()` 完成最后一点工作，系统开始运转[^40]:
+
+```c
+asmlinkage __visible __init __no_sanitize_address __noreturn __no_stack_protector
+void start_kernel(void)
+{
+	char *command_line;
+	char *after_dashes;
+
+	set_task_stack_end_magic(&init_task);
+	smp_setup_processor_id();
+	debug_objects_early_init();
+	init_vmlinux_build_id();
+
+	cgroup_init_early();
+
+	local_irq_disable();
+	early_boot_irqs_disabled = true;
+
+	/*
+	 * Interrupts are still disabled. Do necessary setups, then
+	 * enable them.
+	 */
+	boot_cpu_init();
+	page_address_init();
+	pr_notice("%s", linux_banner);
+	setup_arch(&command_line);
+	/* Static keys and static calls are needed by LSMs */
+	jump_label_init();
+	static_call_init();
+	early_security_init();
+	setup_boot_config();
+	setup_command_line(command_line);
+	setup_nr_cpu_ids();
+	setup_per_cpu_areas();
+	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+	early_numa_node_init();
+	boot_cpu_hotplug_init();
+
+	/* ... */
+
+	/*
+	 * Set up the scheduler prior starting any interrupts (such as the
+	 * timer interrupt). Full topology setup happens at smp_init()
+	 * time - but meanwhile we still have a functioning scheduler.
+	 */
+
+	sched_init();
+
+	/* ... */
+
+	thread_stack_cache_init();
+	cred_init();
+	fork_init();
+	proc_caches_init();
+	uts_ns_init();
+	key_init();
+	security_init();
+	dbg_late_init();
+	net_ns_init();
+	vfs_caches_init();
+	pagecache_init();
+	signals_init();
+	seq_file_init();
+	proc_root_init();
+	nsfs_init();
+	pidfs_init();
+	cpuset_init();
+	mem_cgroup_init();
+	cgroup_init();
+	taskstats_init_early();
+	delayacct_init();
+
+	acpi_subsystem_init();
+	arch_post_acpi_subsys_init();
+	kcsan_init();
+
+	// 系统主要的初始化工作都已完成，内核已激活。现在调用最后一个 init 函数，
+	// 完成剩下的一点点工作，系统开始运转。
+	rest_init();
+
+	/*
+	 * Avoid stack canaries in callers of boot_init_stack_canary for gcc-10
+	 * and older.
+	 */
+#if !__has_attribute(__no_stack_protector__)
+	prevent_tail_call_optimization();
+#endif
+}
+```
+
+内核会启动第一个进程，称之为 Process 0 或者 Swapper 进程，我们都知道 Linux 有一个 init 进程，它是 Linux 的根进程，PID 是 1，所以也叫 1 号进程，这个进程是内核创建的第一个用户空间的进程，它是未来所有用户进程的祖先，以后产生的新进程都衍生自这个 init 进程。init 进程是由 swapper 进程创建的，其核心代码逻辑在 `kernel_init()` 函数中，主要作用是完成设备驱动的初始化，以及内核中的部分其他初始化工作，随后执行 `execve` 操作，跑可执行程序 init，正式转变成用户态进程。`rest_init` 精简后的代码如下[^41] [^42]：
+
+```c
+static noinline void __ref __noreturn rest_init(void)
+{
+	struct task_struct *tsk;
+	int pid;
+
+	rcu_scheduler_starting();
+
+	// 创建用户态线程，执行 kernel_init() 函数初始化设备驱动，
+	// 运行 1 号进程，也就是 init 进程。
+	pid = user_mode_thread(kernel_init, NULL, CLONE_FS);
+
+	numa_default_policy();
+	// 创建内核线程，也就是 2 号进程 kthreadd
+	pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES);
+
+	/* ... */
+
+	// 在关闭抢占的情况下，执行一次调度工作，
+	// 这里主要是为了内核启动时能正常运行起来
+	schedule_preempt_disabled();
+	// 系统刚启动，还没有任何任务，所以尝试使 CPU 保持空闲状态
+	cpu_startup_entry(CPUHP_ONLINE);
+}
+
+void __sched schedule_preempt_disabled(void)
+{
+	sched_preempt_enable_no_resched();
+	schedule(); // 调度器入口
+	preempt_disable();
+}
+```
+
+`cpu_startup_entry()` 函数是一个无限循环，循环体中的逻辑也非常简单，就只是调用 `do_idle()`，尝试使 CPU 保持空闲状态[^43]：
+
+```c
+void cpu_startup_entry(enum cpuhp_state state)
+{
+	current->flags |= PF_IDLE;
+	arch_cpu_idle_prepare();
+	cpuhp_online_idle(state);
+	while (1)
+		do_idle();
+}
+```
+
+`do_idle()` 函数是内核中使 CPU 保持空闲状态的核心函数，其主要逻辑是循环检查当前进程是否有 `TIF_NEED_RESCHED` 标志，如果没有则说明没有其他进程准备抢占它的 CPU 去运行，也就是说系统中暂时没有其他可运行的进程，因为这是系统刚启动的时候，所以可能还没有启动任何用户进程。此时则让 CPU 进入空闲状态，不做任何事，节省算力。函数的源码如下[^44]：
+
+```c
+static void do_idle(void)
+{
+	int cpu = smp_processor_id();
+
+	/*
+	 * Check if we need to update blocked load
+	 */
+	nohz_run_idle_balance(cpu);
+
+	/*
+	 * If the arch has a polling bit, we maintain an invariant:
+	 *
+	 * Our polling bit is clear if we're not scheduled (i.e. if rq->curr !=
+	 * rq->idle). This means that, if rq->idle has the polling bit set,
+	 * then setting need_resched is guaranteed to cause the CPU to
+	 * reschedule.
+	 */
+
+	__current_set_polling();
+	tick_nohz_idle_enter();
+
+	while (!need_resched()) {
+		/* ... */
+
+		arch_cpu_idle_enter();
+		rcu_nocb_flush_deferred_wakeup();
+
+		if (cpu_idle_force_poll || tick_check_broadcast_expired()) {
+			tick_nohz_idle_restart_tick();
+			// 内核启动时设置了轮询模式 idle=poll，那么就会调用 cpu_idle_poll()，
+			// 这个函数的主体逻辑实际上就是不断地轮询检查当前进程的 TIF_NEED_RESCHED 标志
+			cpu_idle_poll();
+		} else {
+			// 如果没有设置轮询模式，则走 cpuidle_idle_call() 函数，
+			// 主动让 CPU 进入 idle 状态
+			cpuidle_idle_call();
+		}
+		arch_cpu_idle_exit();
+	}
+
+	/* ... */
+
+	// 如果系统中有了其他的进程，这个 0 号进程就可以被抢占，
+	// 被打上 TIF_NEED_RESCHED 标志，所以调用 schedule_idle()，
+	// 该函数和 schedule_preempt_disabled() 类似，也是执行任务调度
+	schedule_idle();
+
+	if (unlikely(klp_patch_pending(current)))
+		klp_update_patch_state(current);
+}
+
+void __sched schedule_idle(void)
+{
+	WARN_ON_ONCE(current->__state);
+	do {
+		__schedule(SM_IDLE);
+	} while (need_resched());
+}
+
+static __always_inline bool need_resched(void)
+{
+	return unlikely(tif_need_resched());
+}
+```
+
+这里重点要关注的是 `cpuidle_idle_call()` 函数，它会先检查当前系统中是否有高级电源管理模块，如果有的话则使用这个模块来指示 CPU 进入休眠状态，不同架构的芯片通常有不同的实现，比如 x86，则通常是通过高级的低功耗指令 [MWAIT](https://c9x.me/x86/html/file_module_x86_id_215.html) 来指示 CPU 进入休眠；如果没有高级电源管理模块的话，`cpuidle_idle_call()` 则会调用 `default_idle_call()` 走比较通用的、低级的低功耗指令，同样也是不同架构的芯片有不同实现：比如 x86 架构的 CPU 是执行 [HLT](https://en.wikipedia.org/wiki/HLT_(x86_instruction)) 指令，arm 架构的话则是执行 [WFI](https://developer.arm.com/documentation/dui0379/e/arm-and-thumb-instructions/wfi) 指令。
+
+到这里 0 号进程就完成了第一颗 CPU 的休眠指示，也就是令其进入 idle 状态。而在 0 号进程执行的 `kernel_init()` 函数中，还会通过函数调用链 `smp_init()` --> `idle_threads_init()` 为剩余的每一个 CPU 都复制出一个这样的 idle 进程[^45] [^46]：
+
+```c
+void __init smp_init(void)
+{
+	int num_nodes, num_cpus;
+
+	// 从 0 号进程复制出一堆 idle 进程，每个 CPU 绑定一个
+	idle_threads_init();
+	cpuhp_threads_init();
+
+	pr_info("Bringing up secondary CPUs ...\n");
+
+	bringup_nonboot_cpus(setup_max_cpus);
+
+	num_nodes = num_online_nodes();
+	num_cpus  = num_online_cpus();
+	pr_info("Brought up %d node%s, %d CPU%s\n",
+		num_nodes, str_plural(num_nodes), num_cpus, str_plural(num_cpus));
+
+	/* Any cleanup work */
+	smp_cpus_done(setup_max_cpus);
+}
+
+/**
+ * idle_threads_init - Initialize idle threads for all cpus
+ */
+void __init idle_threads_init(void)
+{
+	unsigned int cpu, boot_cpu;
+
+	boot_cpu = smp_processor_id();
+
+	// 遍历所有可用的 CPU，调用 idle_init()
+	// 每一个 CPU 都初始化一个 idle 进程
+	for_each_possible_cpu(cpu) {
+		if (cpu != boot_cpu) // 除去当前启动的 CPU
+			idle_init(cpu);
+	}
+}
+
+static __always_inline void idle_init(unsigned int cpu)
+{
+	// 检查这个 CPU 是否有绑定一个 idle 进程，per_cpu 返回空则表示否
+	struct task_struct *tsk = per_cpu(idle_threads, cpu);
+
+	if (!tsk) {
+		// 如果这个 CPU 上没有绑定一个 idle 进程，则从当前的 0 号进程
+		// fork 一个 idle 进程出来，然后
+		tsk = fork_idle(cpu);
+		if (IS_ERR(tsk))
+			pr_err("SMP: fork_idle() failed for CPU %u\n", cpu);
+		else
+			per_cpu(idle_threads, cpu) = tsk;
+	}
+}
+```
+
+经过上面的剖析，内核启动时的简化模型如下：
+
+![](https://res.strikefreedom.top/static_res/blog/figures/kernel-process-entry.png)
+
+内核启动时使用的第一个 CPU 会启动并运行 0 号进程，随后 0 号进程会为剩下的 CPU 也都分配一个从 0 号进程 fork 出来的 idle 进程去运行。它们是系统中优先级最低的进程，当系统中没有可运行任务时，调度器就调度这些进程到 CPU 上，指示 CPU 进入低功耗模式。一旦有任何可运行的任务出现，调度器就会马上抢占这些 idle 进程，切换上下文，执行其他进程。
+
+# 总结
+
+本文深入浅出地对 Linux 调度器的设计与实现进行了全面解读，介绍了 Linux 从早期的 O(1) 调度器到 CFS 调度器，最后到 EEVDF 调度器的演变过程。通过对调度器的设计理念、核心算法、数据结构以及代码实现细节的解析，全面而深入地帮助读者深刻地理解 Linux 内核如何高效地管理 CPU 资源，调度任务执行。
+
+本文的核心是对 CFS 调度器的剖析，以及 CFS 进化到最新一代 EEVDF 调度器的过程。CFS 调度器通过引入虚拟时间 vruntime 和权重的概念，实现了公平性调度，而 EEVDF 则在此基础上进一步优化了延迟敏感型任务的调度性能。EEVDF 在 CFS 的公平性调度基础上，又引入 lag、eligible time 和 virtual deadline 等新概念，实现了对延迟敏感型任务调度的更好支持，使得 Linux 内核能够更好地适应现代多样化的应用场景。特别是随着 AI 浪潮的到来，在模型训练、模型推理等场景中，我们对低延迟的需求会越来越大，相信新一代的 EEVDF 调度器会在这样的浪潮中发挥越来越大的作用。
 
 # 参考&延伸
  - [sched(7) — Linux manual page](https://man7.org/linux/man-pages/man7/sched.7.html)
@@ -1546,3 +1837,10 @@ found:
 [^37]: [kernel/sched/fair.c#L5305](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/fair.c#L5305)
 [^38]: [Tuning the task scheduler](https://documentation.suse.com/sles/15-SP5/html/SLES-all/cha-tuning-taskscheduler.html)
 [^39]: [kernel/sched/fair.c#L724](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/fair.c#L724)
+[^40]: [kernel/sched/fair.c#L896](https://elixir.bootlin.com/linux/v6.15/source/init/main.c#L896)
+[^41]: [init/main.c#L697](https://elixir.bootlin.com/linux/v6.15/source/init/main.c#L697)
+[^42]: [kernel/sched/core.c#L6914](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/core.c#L6914)
+[^43]: [kernel/sched/idle.c#417](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/idle.c#L417)
+[^44]: [kernel/sched/idle.c#L252](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/idle.c#L252)
+[^45]: [kernel/smp.c#L1001](https://elixir.bootlin.com/linux/v6.15/source/kernel/smp.c#L1001)
+[^46]: [kernel/smpboot.c#L50](https://elixir.bootlin.com/linux/v6.15/source/kernel/smpboot.c#L50)
