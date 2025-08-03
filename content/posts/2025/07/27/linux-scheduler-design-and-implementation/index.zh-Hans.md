@@ -1799,6 +1799,7 @@ static __always_inline void idle_init(unsigned int cpu)
  - [Tuning the Linux Kernel Scheduler](https://documentation.suse.com/sles/15-SP5/html/SLES-all/cha-tuning-taskscheduler.html)
  - [The Linux Kernel Scheduler](https://www.youtube.com/watch?v=5WtnnzpwEuA)
  - [Earliest Eligible Virtual Deadline First : A Flexible and Accurate Mechanism for Proportional Share Resource Allocation](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=805acf7726282721504c8f00575d91ebfd750564)
+ - [EEVDF is the new (sched_)normal](https://www.youtube.com/watch?v=5jIbEzTdTks)
 
 [^1]: [kernel/sched/sched.h#L2207](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/sched.h#L2207)
 [^2]: [kernel/sched/sched.h#L2302](https://elixir.bootlin.com/linux/v6.5/source/kernel/sched/sched.h#L2302)
