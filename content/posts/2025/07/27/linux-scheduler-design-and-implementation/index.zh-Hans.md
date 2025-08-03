@@ -1431,7 +1431,7 @@ int entity_eligible(struct cfs_rq *cfs_rq, struct sched_entity *se)
 pick_next_task_fair() -> pick_task_fair() -> pick_next_entity() -> pick_eevdf()
 ```
 
-前面已经说过，EEVDF 在内核中并没有引入新的调度类，而是在 CFS 调度类之上做了改进。所以 EEVDF 调度器复用了大部分 CFS 的代码逻辑，因此调度逻辑基本沿用了 CFS 调度器。EEVDF 的增强红黑树使用 virtual deadline 作为 key 排序，同时引入 `min_vruntime` 来记录子树中的最小 vruntime。
+前面已经说过，EEVDF 在内核中并没有引入新的调度类，而是在 CFS 调度类之上做了改进。所以 EEVDF 调度器复用了大部分 CFS 的代码逻辑，因此调度逻辑基本沿用了 CFS 调度器。EEVDF 的增强红黑树使用 virtual deadline 作为 key 排序，同时引入 `min_vruntime` 来记录子树中的最小 vruntime。这里我们重点摘取 EEVDF 调度器挑选下一个任务的源码来解析[^40]：
 
 ```c
 static struct sched_entity *pick_eevdf(struct cfs_rq *cfs_rq)
@@ -1502,7 +1502,7 @@ found:
 
 内核从启动之初就会调度任务，所以调度器的代码可以说是贯穿了整个内核的生命周期。接下来我们来看看内核是如何启动并开始执行调度器代码的。
 
-内核启动时的入口是 `start_kernel()` 函数，其中会完成各式各样的初始化工作，比如 CPU 的初始化、内存管理的初始化等，当然也包括调度器的初始化，通过 `sched_init()` 函数来完成，因为系统启动之后可能很快就有系统中断发生，我们前面已经说过，触发调度的一个重要的时机之一就是当从中断返回的时候，所以如果调度器没有在此之前没有准备好，则中断处理就会有问题。`start_kernel()` 最后调用 `rest_init()` 完成最后一点工作，系统开始运转[^40]:
+内核启动时的入口是 `start_kernel()` 函数，其中会完成各式各样的初始化工作，比如 CPU 的初始化、内存管理的初始化等，当然也包括调度器的初始化，通过 `sched_init()` 函数来完成，因为系统启动之后可能很快就有系统中断发生，我们前面已经说过，触发调度的一个重要的时机之一就是当从中断返回的时候，所以如果调度器没有在此之前没有准备好，则中断处理就会有问题。`start_kernel()` 最后调用 `rest_init()` 完成最后一点工作，系统开始运转[^41]:
 
 ```c
 asmlinkage __visible __init __no_sanitize_address __noreturn __no_stack_protector
@@ -1593,7 +1593,7 @@ void start_kernel(void)
 }
 ```
 
-内核会启动第一个进程，称之为 Process 0 或者 Swapper 进程，我们都知道 Linux 有一个 init 进程，它是 Linux 的根进程，PID 是 1，所以也叫 1 号进程，这个进程是内核创建的第一个用户空间的进程，它是未来所有用户进程的祖先，以后产生的新进程都衍生自这个 init 进程。init 进程是由 swapper 进程创建的，其核心代码逻辑在 `kernel_init()` 函数中，主要作用是完成设备驱动的初始化，以及内核中的部分其他初始化工作，随后执行 `execve` 操作，跑可执行程序 init，正式转变成用户态进程。`rest_init` 精简后的代码如下[^41] [^42]：
+内核会启动第一个进程，称之为 Process 0 或者 Swapper 进程，我们都知道 Linux 有一个 init 进程，它是 Linux 的根进程，PID 是 1，所以也叫 1 号进程，这个进程是内核创建的第一个用户空间的进程，它是未来所有用户进程的祖先，以后产生的新进程都衍生自这个 init 进程。init 进程是由 swapper 进程创建的，其核心代码逻辑在 `kernel_init()` 函数中，主要作用是完成设备驱动的初始化，以及内核中的部分其他初始化工作，随后执行 `execve` 操作，跑可执行程序 init，正式转变成用户态进程。`rest_init` 精简后的代码如下[^42] [^43]：
 
 ```c
 static noinline void __ref __noreturn rest_init(void)
@@ -1628,7 +1628,7 @@ void __sched schedule_preempt_disabled(void)
 }
 ```
 
-`cpu_startup_entry()` 函数是一个无限循环，循环体中的逻辑也非常简单，就只是调用 `do_idle()`，尝试使 CPU 保持空闲状态[^43]：
+`cpu_startup_entry()` 函数是一个无限循环，循环体中的逻辑也非常简单，就只是调用 `do_idle()`，尝试使 CPU 保持空闲状态[^44]：
 
 ```c
 void cpu_startup_entry(enum cpuhp_state state)
@@ -1641,7 +1641,7 @@ void cpu_startup_entry(enum cpuhp_state state)
 }
 ```
 
-`do_idle()` 函数是内核中使 CPU 保持空闲状态的核心函数，其主要逻辑是循环检查当前进程是否有 `TIF_NEED_RESCHED` 标志，如果没有则说明没有其他进程准备抢占它的 CPU 去运行，也就是说系统中暂时没有其他可运行的进程，因为这是系统刚启动的时候，所以可能还没有启动任何用户进程。此时则让 CPU 进入空闲状态，不做任何事，节省算力。函数的源码如下[^44]：
+`do_idle()` 函数是内核中使 CPU 保持空闲状态的核心函数，其主要逻辑是循环检查当前进程是否有 `TIF_NEED_RESCHED` 标志，如果没有则说明没有其他进程准备抢占它的 CPU 去运行，也就是说系统中暂时没有其他可运行的进程，因为这是系统刚启动的时候，所以可能还没有启动任何用户进程。此时则让 CPU 进入空闲状态，不做任何事，节省算力。函数的源码如下[^45]：
 
 ```c
 static void do_idle(void)
@@ -1711,7 +1711,7 @@ static __always_inline bool need_resched(void)
 
 这里重点要关注的是 `cpuidle_idle_call()` 函数，它会先检查当前系统中是否有高级电源管理模块，如果有的话则使用这个模块来指示 CPU 进入休眠状态，不同架构的芯片通常有不同的实现，比如 x86，则通常是通过高级的低功耗指令 [MWAIT](https://c9x.me/x86/html/file_module_x86_id_215.html) 来指示 CPU 进入休眠；如果没有高级电源管理模块的话，`cpuidle_idle_call()` 则会调用 `default_idle_call()` 走比较通用的、低级的低功耗指令，同样也是不同架构的芯片有不同实现：比如 x86 架构的 CPU 是执行 [HLT](https://en.wikipedia.org/wiki/HLT_(x86_instruction)) 指令，arm 架构的话则是执行 [WFI](https://developer.arm.com/documentation/dui0379/e/arm-and-thumb-instructions/wfi) 指令。
 
-到这里 0 号进程就完成了第一颗 CPU 的休眠指示，也就是令其进入 idle 状态。而在 0 号进程执行的 `kernel_init()` 函数中，还会通过函数调用链 `smp_init()` --> `idle_threads_init()` 为剩余的每一个 CPU 都复制出一个这样的 idle 进程[^45] [^46]：
+到这里 0 号进程就完成了第一颗 CPU 的休眠指示，也就是令其进入 idle 状态。而在 0 号进程执行的 `kernel_init()` 函数中，还会通过函数调用链 `smp_init()` --> `idle_threads_init()` 为剩余的每一个 CPU 都复制出一个这样的 idle 进程[^46] [^47]：
 
 ```c
 void __init smp_init(void)
@@ -1841,10 +1841,11 @@ static __always_inline void idle_init(unsigned int cpu)
 [^37]: [kernel/sched/fair.c#L5305](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/fair.c#L5305)
 [^38]: [Tuning the task scheduler](https://documentation.suse.com/sles/15-SP5/html/SLES-all/cha-tuning-taskscheduler.html)
 [^39]: [kernel/sched/fair.c#L724](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/fair.c#L724)
-[^40]: [kernel/sched/fair.c#L896](https://elixir.bootlin.com/linux/v6.15/source/init/main.c#L896)
-[^41]: [init/main.c#L697](https://elixir.bootlin.com/linux/v6.15/source/init/main.c#L697)
-[^42]: [kernel/sched/core.c#L6914](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/core.c#L6914)
-[^43]: [kernel/sched/idle.c#417](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/idle.c#L417)
-[^44]: [kernel/sched/idle.c#L252](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/idle.c#L252)
-[^45]: [kernel/smp.c#L1001](https://elixir.bootlin.com/linux/v6.15/source/kernel/smp.c#L1001)
-[^46]: [kernel/smpboot.c#L50](https://elixir.bootlin.com/linux/v6.15/source/kernel/smpboot.c#L50)
+[^40]: [kernel/sched/fair.c#L925](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/fair.c#L925)
+[^41]: [init/main.c#L896](https://elixir.bootlin.com/linux/v6.15/source/init/main.c#L896)
+[^42]: [init/main.c#L697](https://elixir.bootlin.com/linux/v6.15/source/init/main.c#L697)
+[^43]: [kernel/sched/core.c#L6914](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/core.c#L6914)
+[^44]: [kernel/sched/idle.c#417](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/idle.c#L417)
+[^45]: [kernel/sched/idle.c#L252](https://elixir.bootlin.com/linux/v6.15/source/kernel/sched/idle.c#L252)
+[^46]: [kernel/smp.c#L1001](https://elixir.bootlin.com/linux/v6.15/source/kernel/smp.c#L1001)
+[^47]: [kernel/smpboot.c#L50](https://elixir.bootlin.com/linux/v6.15/source/kernel/smpboot.c#L50)
