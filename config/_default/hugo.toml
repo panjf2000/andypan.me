@@ -25,3 +25,7 @@ summaryLength = 0
     startLevel = 1
     endLevel = 5
     ordered = false
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
