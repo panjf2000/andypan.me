@@ -263,12 +263,6 @@ $$
 在内核中，物理时间被称为 wall time，也可以称之为 runtime，进程 \\(i\\) 的 vruntime 和 runtime 之间的关系如下：
 
 $$
-vruntime_i = vruntime_{i-1} + \frac{NICE\\\_0\\\_LOAD}{weight_i} \times (runtime_i - runtime_{i-1})
-$$
-
-或者
-
-$$
 vruntime_i = \frac{NICE\\_0\\_LOAD}{weight_i} \times runtime_i
 $$
 
