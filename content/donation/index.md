@@ -3,7 +3,7 @@ date = '2018-07-07'
 title = 'Donation'
 summary = 'Thank you for your generosity.'
 layout = 'page'
-tags = ['Donation', 'Personal', 'WeChat', 'AliPay', 'PayPal']
+tags = ['Donation', 'BuyMeCoffee', 'Patreon', 'OpenCollective']
 [params]
   author = 'Andy Pan'
 showAuthor = true
@@ -14,7 +14,27 @@ showWordCount = false
 
 If you have ever benefited from my open-source software or technological articles and would like to buy me a cup of coffee, you can do so in the following ways:
 
-[![](img/donation.png)](https://www.paypal.me/R136a1X)
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://buymeacoffee.com/panjf2000">
+          <img src="img/bmc_qr.png" width="250" alt="By me coffee" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://www.patreon.com/panjf2000">
+          <img src="img/patreon_logo.png" width="250" alt="Patreon" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://opencollective.com/panjf2000">
+          <img src="img/open-collective-logo.png" width="250" alt="OpenCollective" />
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 # 💴 Patrons
 

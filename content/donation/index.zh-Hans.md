@@ -3,7 +3,7 @@ date = '2018-07-07'
 title = '捐赠'
 summary = '感谢你的慷慨解囊。'
 layout = 'page'
-tags = ['捐赠', '个人', '微信', '支付宝', 'PayPal']
+tags = ['Donation', 'BuyMeCoffee', 'Patreon', 'OpenCollective']
 [params]
   author = '潘少'
 showAuthor = true
@@ -14,7 +14,27 @@ showWordCount = false
 
 如果我的开源软件或者技术文章对你有所帮助，而且你也愿意慷慨解囊，可以 通过以下的任一方式进行捐赠：
 
-[![](img/donation.png)](https://www.paypal.me/R136a1X)
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://buymeacoffee.com/panjf2000">
+          <img src="https://andypan.me/donation/img/bmc_qr.png" width="250" alt="By me coffee" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://www.patreon.com/panjf2000">
+          <img src="https://andypan.me/donation/img/patreon_logo.png" width="250" alt="Patreon" />
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a target="_blank" href="https://opencollective.com/panjf2000">
+          <img src="https://andypan.me/donation/img/open-collective-logo.png" width="250" alt="OpenCollective" />
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 # 💴 捐赠者
 
