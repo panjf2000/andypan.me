@@ -539,6 +539,8 @@ void update_process_times(int user_tick)
 }
 ```
 
+`account_process_tick()` 函数会把整个节拍时间都算给当前进程，然而事实上进程在上一个节拍周期内不一定占用了全部的时间，比如进程曾经多次在内核态和用户态切换，而且当时也未必只有一个进程在运行。可惜的是，在 Linux 和其他类 UNIX 系统中这已经是最精确的时间统计粒度了，目前还没有更精密的统计算法的支持，所以只能做到这个程度。所以内核也开放了 HZ 的配置，让有需求的用户可以使用更高的 HZ 值，也就是使用更低的节拍时间，尽量弥补当前统计算法的精度丢失。
+
 `scheduler_tick()` 是 CFS 调度器进行周期性调度的入口函数，主要工作就是更新调度实体的 vruntime 和其他调度信息。它会遍历当前 CPU 上正在运行的任务，更新任务的 vruntime，然后内核会根据 vruntime 的最新值重新调整红黑树，以保持其有序性[^15]。
 
 ```c
@@ -818,7 +820,7 @@ restart:
 
 这个函数我们前面已经介绍过了，这里我们重点看一下代码里遍历所有调度类之前的那部分吧。那部分是一个优化路径，可以看到那里有一大片注释，意思是说如果当前 CPU 的 runqueue 中所有任务都是 CFS 调度类的任务，并且当前要被抢占的任务所属的调度类的优先级不比 CFS 更高的话，就可以直接调用 CFS 的 `pick_next_task_fair()` 函数来选择下一个任务，而不需要遍历所有调度类并执行它们的 `pick_next_task()` 方法了。
 
-为什么内核要求当前要被抢占的任务所属的调度类的优先级不比 CFS 更高时才考虑进入优化路径呢？注释里说如果不是这样的话就会失去从其他 CPU 上拉取更多任务的机会。我的理解是，如果当前在运行的任务是一个实时任务而剩下的可运行任务都是 CFS 调度类的任务，那么这个实时任务就是当前 CPU 的 runqueue 中唯一一个实时任务，如果直接进入优化路径从 CFS 调度类的红黑树中选择下一个任务抢占掉这个实时任务之后，下一次的调度选择下一个任务时又会直接进入优化路径，也就是后面会一直选择 CFS 调度类的任务来运行，调度器可能就没有机会从其他 CPU 取任务过来运行了。
+为什么内核要求当前要被抢占的任务所属的调度类的优先级不比 CFS 更高时才考虑进入优化路径呢？注释里说如果不是这样的话就会失去从其他 CPU 上拉取更多任务的机会。我的理解是，如果当前在运行的任务是一个实时任务而剩下的可运行任务都是 CFS 调度类的任务，那么这个实时任务就是当前 CPU 的 runqueue 中唯一一个实时任务，如果直接进入优化路径从 CFS 调度类的红黑树中选择下一个任务抢占掉这个实时任务之后，下一次的调度选择下一个任务时又会直接进入优化路径，也就是后面会一直选择 CFS 调度类的任务来运行，调度器可能就没有机会执行后面的代码对当前系统中的任务进行负载均衡：将任务在 CPU 之间进行迁移并遍历所有调度类执行 `pick_next_task()` 方法挑选合适的任务来运行，对于当前 CPU 来说就是没机会从其他 CPU 取任务过来运行了。
 
 这个优化路径是基于这样一个事实：大部分人都是使用 Linux 作为一个分时系统而非实时系统，这种情况下系统中绝大部分任务都是 CFS 调度器管理的，也就是说系统中优先级最高的调度类就是 CFS 调度类，所以可以使用 `likely` 编译器指令来优化 CPU 流水线的分支预测功能，提高调度器的性能。
 
@@ -969,7 +971,7 @@ static void task_fork_fair(struct task_struct *p)
 		update_curr(cfs_rq); // 更新当前调度实体的 vruntime
 		se->vruntime = curr->vruntime; // 然后将新进程的 vruntime 初始化为当前调度实体的 vruntime
 	}
-	// 对新进程、被唤醒进程执行奖惩机制，前者增加 vruntime，后者减小 vruntime
+	// 对新进程进行惩罚，也就是增加其 vruntime
 	place_entity(cfs_rq, se, 1);
 
 	if (sysctl_sched_child_runs_first && curr && entity_before(curr, se)) {
@@ -1015,7 +1017,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
 	if (initial && sched_feat(START_DEBIT))
 		vruntime += sched_vslice(cfs_rq, se);
 
-	// 如果是被唤醒的进程，则进行奖励，减小 vruntime
+	// initial == 0 表示是被唤醒的进程，则进行奖励，减小其 vruntime
 	if (!initial) {
 		unsigned long thresh; // vruntime 将要减去的值
 
@@ -1100,7 +1102,7 @@ void wake_up_new_task(struct task_struct *p)
 }
 ```
 
-CFS 调度类的 `select_task_rq()` 函数实现是 `select_task_rq_fair()`，它的核心策略负载均衡，所以通常会选择一个当前负载最小的 CPU，或者说最空闲的 CPU。
+CFS 调度类的 `select_task_rq()` 函数实现是 `select_task_rq_fair()`，它的核心策略是负载均衡，所以通常会选择一个当前负载最小的 CPU，或者说最空闲的 CPU。
 
 `activate_task()` 函数里会调用调度类的成员方法 `enqueue_task()`，CFS 调度类的实现是 `enqueue_task_fair()`[^31]：
 
@@ -1165,8 +1167,9 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 	account_entity_enqueue(cfs_rq, se);
 
 	if (flags & ENQUEUE_WAKEUP)
-		// 这里的 se 是新进程，所以不会进到这里，但如果是被唤醒的进程则调用
-		// place_entity() 函数对进程进行奖励，也就是减少其 vruntime
+		// 这里的 se 是新进程，所以不会进到这里，因为进入这个函数之前已经调用过 place_entity()
+		// 对 vruntime 进行过惩罚了；如果是被唤醒的进程则调用 place_entity() 函数对进程进行奖励，
+		// 也就是减少其 vruntime
 		place_entity(cfs_rq, se, 0);
 	/* Entity has migrated, no longer consider this task hot */
 	if (flags & ENQUEUE_MIGRATED)
