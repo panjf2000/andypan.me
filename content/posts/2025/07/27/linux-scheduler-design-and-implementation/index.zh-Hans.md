@@ -1756,11 +1756,12 @@ static __always_inline void idle_init(unsigned int cpu)
 
 	if (!tsk) {
 		// 如果这个 CPU 上没有绑定一个 idle 进程，则从当前的 0 号进程
-		// fork 一个 idle 进程出来，然后
+		// fork 一个 idle 进程出来，然后绑定到这个 CPU 上运行
 		tsk = fork_idle(cpu);
 		if (IS_ERR(tsk))
 			pr_err("SMP: fork_idle() failed for CPU %u\n", cpu);
 		else
+			// 调用 per_cpu() 将 idle 进程绑定到 CPU 上
 			per_cpu(idle_threads, cpu) = tsk;
 	}
 }
